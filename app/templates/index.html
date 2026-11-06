@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NEXUS PC CONTROL</title><link rel="stylesheet" href="/static/style.css"></head>
+<body><aside class="sidebar"><div class="brand"><span class="mark">N</span><div><b>NEXUS</b><small>PC CONTROL</small></div></div>
+<nav><a class="active" href="#overview">◈ Resumen</a><a href="#storage">▤ Almacenamiento</a><a href="#large">⌕ Archivos grandes</a><a href="#cleaner">✦ Limpieza segura</a><a href="#health">⌁ Rendimiento</a></nav>
+<div class="side-note">ANÁLISIS LOCAL<br><span>Los datos permanecen en tu PC.</span></div></aside>
+<main><header><div><p class="eyebrow">CENTRO DE CONTROL DEL SISTEMA</p><h1>Tu PC, bajo control.</h1><p class="muted">Diagnóstico de almacenamiento y mantenimiento seguro.</p></div><button class="primary" onclick="runScan()">⟳ Analizar ahora</button></header>
+<section id="overview" class="stats"><article class="stat"><span>DISCO PRINCIPAL</span><strong id="diskUsed">—</strong><small id="diskFree">Leyendo unidades...</small><div class="bar"><i id="diskBar"></i></div></article>
+<article class="stat"><span>CPU</span><strong id="cpu">—</strong><small>Uso actual</small></article><article class="stat"><span>RAM</span><strong id="ram">—</strong><small id="ramFree">Memoria disponible</small></article></section>
+<section id="storage" class="panel"><div class="section-head"><div><p class="eyebrow">01 / STORAGE INTELLIGENCE</p><h2>¿Qué está ocupando espacio?</h2></div><button onclick="runScan()">Escanear carpetas</button></div><div id="folders" class="folder-list"><p class="muted">Pulsa Analizar ahora para comenzar.</p></div></section>
+<section id="large" class="panel"><div class="section-head"><div><p class="eyebrow">02 / LARGE FILES</p><h2>Archivos de gran tamaño</h2></div><button onclick="loadLarge()">Buscar archivos ≥ 1 GB</button></div><div id="largeFiles" class="folder-list"><p class="muted">Escaneo bajo demanda.</p></div></section>
+<section id="cleaner" class="panel"><div class="section-head"><div><p class="eyebrow">03 / SAFE CLEANER</p><h2>Limpieza selectiva</h2></div><button class="danger" onclick="cleanSelected()">Limpiar seleccionados</button></div><p class="notice">Revisa cada elemento antes de confirmar.</p><div id="cleanItems" class="folder-list"></div><div id="cleanResult" class="muted"></div></section>
+<section id="health" class="panel"><div class="section-head"><div><p class="eyebrow">04 / SYSTEM HEALTH</p><h2>Estado del equipo</h2></div><button onclick="loadHealth()">Actualizar</button></div><div id="healthInfo" class="muted">Consultando recursos...</div></section>
+<footer>NEXUS PC CONTROL · v1.0 · Diagnóstico local</footer></main><script src="/static/app.js"></script></body></html>
