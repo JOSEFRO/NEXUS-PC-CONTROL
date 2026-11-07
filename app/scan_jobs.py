@@ -74,7 +74,7 @@ class ScanJobManager:
     def _run(self, job_id):
         with self._lock:
             job = self._jobs[job_id]
-            job["status"] = "running"
+            job["status"] = "cancelling" if job["_cancel"].is_set() else "running"
             job["started_at"] = time.time()
             kind = job["kind"]
             options = dict(job["options"])
