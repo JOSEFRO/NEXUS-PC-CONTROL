@@ -42,3 +42,8 @@ footer{display:flex;justify-content:space-between;gap:15px;border-top:1px solid 
 .josefro-app-mark{width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 4px 14px #2b91ff44)}.brand small i{display:inline-block;margin-left:5px;color:#78caff;font-style:normal;font-size:8px;letter-spacing:1px}.josefro-footer-logo{display:block;width:140px;height:auto;opacity:.88;filter:drop-shadow(0 4px 14px #3c8fff33)}footer{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
 @media(max-width:800px){.josefro-app-mark{width:40px;height:40px}.josefro-footer-logo{width:115px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* Electric identity mark for the NEXUS PC CONTROL app */
+.josefro-app-mark{animation:jf-electric 3.4s ease-in-out infinite;transform-origin:center}
+@keyframes jf-electric{0%,100%{filter:drop-shadow(0 0 4px #28aaff44) drop-shadow(0 4px 12px #2b91ff22)}43%{filter:drop-shadow(0 0 9px #28dfffaa) drop-shadow(0 0 20px #527cff66) brightness(1.08)}48%{filter:drop-shadow(0 0 14px #b1f8ff) drop-shadow(0 0 28px #597cffbb) brightness(1.2)}53%{filter:drop-shadow(0 0 4px #28aaff44) drop-shadow(0 4px 12px #2b91ff22)}}
+@media(prefers-reduced-motion:reduce){.josefro-app-mark{animation:none}}
