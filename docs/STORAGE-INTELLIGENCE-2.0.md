@@ -1,10 +1,10 @@
 # NEXUS Storage Intelligence 2.0
 ## Technical specification and implementation roadmap
 
-**Status:** P0 implemented; P1 implemented in the feature branch and awaiting CI review  
+**Status:** P0 and P1 implemented; CI passed on Ubuntu and Windows runners; physical Windows validation remains outstanding  
 **Target:** Windows 10/11 desktop environment  
 **Branch:** `feature/storage-intelligence-2.0`  
-**Principle:** preserve the existing application and implement changes incrementally; do not merge into `main` until Windows validation passes.
+**Release note:** source publication does not imply a completed physical-device validation. Keep the app local-only; do not expose its Flask server to the public Internet.
 
 ## 1. Product goal
 
