@@ -163,22 +163,88 @@
     }
   }
 
+  const terminalStates = new Set(["cancelled", "completed", "completed_with_warnings", "failed"]);
+  const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+
+  async function runBackgroundScan(kind, options, panelId, onResult) {
+    const panel = $(panelId);
+    if (panel) {
+      panel.replaceChildren();
+      const status = make("p", "job-status", "Preparando análisis…");
+      const progress = document.createElement("progress");
+      progress.setAttribute("aria-label", "Progreso del análisis; total desconocido");
+      const counters = make("small", "job-counters", "Esperando actividad…");
+      const cancel = make("button", "job-cancel", "Cancelar análisis");
+      cancel.type = "button";
+      let cancelRequested = false;
+      cancel.addEventListener("click", async () => {
+        if (cancelRequested) return;
+        cancelRequested = true;
+        cancel.disabled = true;
+        status.textContent = "Solicitando cancelación…";
+        try { await getJSON("/api/storage/scans/" + job.scan_id + "/cancel", { method: "POST" }); }
+        catch (error) { status.textContent = "No se pudo solicitar la cancelación: " + error.message; }
+      });
+      panel.append(status, progress, counters, cancel);
+
+      let job;
+      try {
+        job = await getJSON("/api/storage/scans", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ kind, ...options })
+        });
+        while (true) {
+          const snapshot = await getJSON("/api/storage/scans/" + job.scan_id);
+          status.textContent = snapshot.phase + " · " + snapshot.status;
+          counters.textContent =
+            Number(snapshot.files_processed || 0).toLocaleString("es-DO") + " archivos · " +
+            Number(snapshot.directories_processed || 0).toLocaleString("es-DO") + " carpetas · " +
+            (Number(snapshot.bytes_observed || 0) / (1024 ** 3)).toFixed(2) + " GB observados · " +
+            Number(snapshot.error_count || 0).toLocaleString("es-DO") + " errores";
+          if (terminalStates.has(snapshot.status)) {
+            cancel.hidden = true;
+            if (snapshot.result && onResult) onResult(snapshot.result);
+            if (snapshot.error) throw new Error(snapshot.error);
+            if (snapshot.status === "cancelled") status.textContent += " (se muestran resultados parciales)";
+            return snapshot;
+          }
+          await wait(650);
+        }
+      } catch (error) {
+        if (panel) showMessage(panel, "No se pudo completar el análisis: " + error.message, "error-message");
+        throw error;
+      }
+    }
+    const job = await getJSON("/api/storage/scans", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind, ...options })
+    });
+    while (true) {
+      const snapshot = await getJSON("/api/storage/scans/" + job.scan_id);
+      if (terminalStates.has(snapshot.status)) {
+        if (snapshot.result && onResult) onResult(snapshot.result);
+        if (snapshot.error) throw new Error(snapshot.error);
+        return snapshot;
+      }
+      await wait(650);
+    }
+  }
+
   async function runScan() {
     if (state.scanning) return;
     state.scanning = true;
-    showMessage($("folders"), "Analizando carpetas seleccionadas…");
+    showMessage($("folders"), "Iniciando análisis en segundo plano…");
     try {
-      const [overview, scan, cleanup] = await Promise.all([
-        getJSON("/api/overview"),
-        getJSON("/api/scan"),
-        getJSON("/api/cleanup")
+      const [overview, cleanup] = await Promise.all([
+        getJSON("/api/overview"), getJSON("/api/cleanup")
       ]);
       renderDrives(overview.drives);
-      renderFolders(scan.folders, scan.coverage);
       renderCleanup(cleanup.items);
+      await runBackgroundScan("profile", {}, "profileJob", (scan) => renderFolders(scan.folders, scan.coverage));
       await loadHealth();
     } catch (error) {
-      showMessage($("folders"), "No se pudo completar el análisis: " + error.message, "error-message");
+      if (!$("profileJob")?.textContent) showMessage($("folders"), "No se pudo completar el análisis: " + error.message, "error-message");
     } finally {
       state.scanning = false;
     }
@@ -188,10 +254,10 @@
     if (state.largeFiles) return;
     state.largeFiles = true;
     const threshold = Math.max(1, Math.min(1048576, Number.parseInt($("largeThreshold")?.value || "1024", 10) || 1024));
-    showMessage($("largeFiles"), "Buscando archivos de " + threshold + " MB o más en el perfil del usuario…");
+    showMessage($("largeFiles"), "Iniciando búsqueda en segundo plano…");
     try {
-      const data = await getJSON("/api/large-files?min_size_mb=" + threshold);
-      renderLargeFiles(data.files, data.coverage);
+      await runBackgroundScan("large_files", { min_size_mb: threshold }, "largeJob",
+        (data) => renderLargeFiles(data.files, data.coverage));
     } catch (error) {
       showMessage($("largeFiles"), "No se pudo completar la búsqueda: " + error.message, "error-message");
     } finally {
