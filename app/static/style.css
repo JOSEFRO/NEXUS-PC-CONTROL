@@ -62,3 +62,22 @@ footer{display:flex;justify-content:space-between;gap:15px;border-top:1px solid 
 .error-message{padding:12px;border:1px solid #8a4652;border-radius:10px;background:#321b27;color:#ffc0c5}
 button:disabled{opacity:.55;cursor:wait}
 @media(max-width:800px){.drive-list{grid-template-columns:1fr}}
+
+/* Storage Intelligence P0: accessible large-file threshold controls and coverage notes. */
+.scan-controls{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap}
+.scan-controls label{color:var(--muted);font-size:12px}
+.scan-controls input{width:112px;min-height:40px;padding:8px 10px;border:1px solid #2b4059;border-radius:10px;background:#0c1625;color:var(--text);font:inherit;font-variant-numeric:tabular-nums}
+.scan-controls input:focus{outline:2px solid var(--cyan);outline-offset:2px}
+.folder-list>.muted,.folder-list>.notice{margin:12px 0;padding:10px 12px;border-radius:9px;line-height:1.5}
+@media(max-width:800px){.scan-controls{width:100%;justify-content:stretch}.scan-controls label{width:100%}.scan-controls input,.scan-controls button{flex:1}}
+
+
+/* Storage Intelligence P1: background scan job status and cancellation controls. */
+.job-panel{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px 14px;margin:14px 0;padding:13px 15px;border:1px solid #29445f;border-radius:12px;background:linear-gradient(110deg,#102235,#101a29)}
+.job-panel:empty{display:none}
+.job-status{grid-column:1/-1;margin:0;color:var(--cyan);font-size:13px;font-weight:700}
+.job-panel progress{width:100%;height:9px;grid-column:1/-1;accent-color:var(--cyan)}
+.job-counters{font-variant-numeric:tabular-nums;line-height:1.5}
+.job-cancel{border-color:#78414a;color:#ffabb1;background:#321b27}
+.job-cancel[hidden]{display:none}
+@media(max-width:800px){.job-panel{grid-template-columns:1fr}.job-cancel{width:100%}}

@@ -6,56 +6,47 @@
 
 ### Diagnóstico local. Información clara. Decisiones seguras.
 
-**Panel local para consultar información del equipo Windows y revisar posibles tareas de mantenimiento.**
+**Panel de diagnóstico para Windows con análisis de almacenamiento en segundo plano.**
 
-[📂 Repositorio](https://github.com/JOSEFRO/NEXUS-PC-CONTROL) · [⬇️ Descargar código ZIP](https://github.com/JOSEFRO/NEXUS-PC-CONTROL/archive/refs/heads/main.zip)
+[Repositorio](https://github.com/JOSEFRO/NEXUS-PC-CONTROL) · [Descargar ZIP](https://github.com/JOSEFRO/NEXUS-PC-CONTROL/archive/refs/heads/main.zip) · [Historial de cambios](https://github.com/JOSEFRO/NEXUS-PC-CONTROL/commits/main)
+
+<sub>Versión de desarrollo 2.0 · Proyecto de JOSEFRO</sub>
 
 </div>
 
 ## ¿Qué es NEXUS?
 
-NEXUS PC CONTROL es una herramienta local para Windows. Presenta información del equipo en una interfaz web que se sirve únicamente en el propio dispositivo. No es un servicio remoto ni debe exponerse a Internet.
+NEXUS PC CONTROL es una aplicación local para Windows. Abre un panel web en tu propio equipo para consultar unidades, revisar el almacenamiento y observar recursos del sistema. La interfaz se sirve en `127.0.0.1:8765`; no es una aplicación web alojada para analizar equipos por Internet.
 
-## Flujo de uso
+## Funciones disponibles
 
-<img src="docs/images/nexus-workflow.svg" alt="Flujo de uso de NEXUS: conexión local, revisión de información y decisión del usuario" width="100%">
+### Diagnóstico del equipo
+- Detección de unidades montadas y capacidad utilizada/libre.
+- Identificación de la unidad del sistema cuando Windows la informa.
+- Consulta de CPU, memoria RAM y versión del entorno.
 
-1. Inicia el programa en tu equipo Windows.
-2. Abre el panel local en el navegador.
-3. Consulta unidades, espacio, CPU, memoria y resultados de análisis.
-4. Revisa la información antes de tomar cualquier decisión.
-5. Confirma manualmente cualquier acción disponible.
+### Storage Intelligence 2.0 — P0 y P1
+- Escaneo recursivo de carpetas habituales del perfil, sin el límite fijo anterior de cuatro niveles.
+- Búsqueda de archivos grandes con umbral configurable.
+- Análisis en segundo plano para mantener la interfaz receptiva.
+- Contadores de archivos, carpetas, bytes observados y errores.
+- Cancelación cooperativa y disponibilidad de resultados parciales.
+- Informe de cobertura, carpetas excluidas, errores y enlaces simbólicos omitidos.
+- Resultados ordenados por tamaño.
 
-## Funciones actuales documentadas
+### Mantenimiento selectivo
+- Presenta ubicaciones temporales admitidas por la aplicación.
+- Requiere selección y confirmación manual.
+- No convierte el análisis de almacenamiento en una orden de borrado.
 
-- Consulta de todas las unidades detectadas, con espacio utilizado y libre.
-- Análisis aproximado de carpetas habituales del perfil del usuario.
-- Búsqueda manual de archivos grandes; informa resultados, no los elimina.
-- Revisión limitada de ubicaciones temporales predefinidas.
-- Lectura de CPU, memoria RAM y versión del entorno.
-- Interfaz en español y diseño adaptable.
+## Inicio rápido en Windows
 
-## Seguridad por diseño
+**Requisitos:** Windows 10/11, Python 3.10 o superior y conexión inicial para instalar dependencias.
 
-- El servidor escucha en `127.0.0.1:8765`, no en una interfaz pública.
-- Los nombres y rutas se representan como texto, no como HTML ejecutable.
-- Validación de host local, límites de solicitudes y validación de datos.
-- La limpieza es selectiva y requiere revisión y confirmación.
-- No elimina documentos, descargas, fotos, proyectos, juegos, máquinas virtuales ni archivos personales.
-
-**Importante:** no ejecutes acciones de mantenimiento si no entiendes qué elemento se va a modificar. Mantén copias de seguridad de los datos importantes.
-
-## Requisitos
-
-- Windows 10 u 11.
-- Python 3.10 o superior.
-- Conexión inicial para instalar Flask y psutil.
-
-## Inicio rápido
-
-1. Descarga y extrae el ZIP.
+1. Descarga el ZIP del repositorio y extrae su contenido.
 2. Ejecuta `INICIAR.bat`.
-3. Si el navegador no se abre automáticamente, visita `http://127.0.0.1:8765`.
+3. Espera a que se instalen las dependencias y se inicie el servidor.
+4. Abre [http://127.0.0.1:8765](http://127.0.0.1:8765) si el navegador no se abre automáticamente.
 
 También puedes iniciarlo desde PowerShell:
 
@@ -66,16 +57,42 @@ py -m pip install -r requirements.txt
 py app.py
 ```
 
+## Arquitectura y API de análisis
+
+Los trabajos de análisis se administran en el proceso local de Flask:
+
+| Método | Ruta | Uso |
+|---|---|---|
+| POST | `/api/storage/scans` | Inicia un análisis de perfil o de archivos grandes |
+| GET | `/api/storage/scans/{scan_id}` | Consulta estado, contadores y resultados |
+| POST | `/api/storage/scans/{scan_id}/cancel` | Solicita la cancelación |
+
+Los estados incluyen `queued`, `running`, `cancelling`, `cancelled`, `completed`, `completed_with_warnings` y `failed`. El progreso es indeterminado cuando no se conoce el total; los contadores reflejan trabajo observado, no porcentajes inventados.
+
+Consulta la [especificación técnica y hoja de ruta](docs/STORAGE-INTELLIGENCE-2.0.md).
+
+## Seguridad y privacidad
+
+- El servidor escucha exclusivamente en `127.0.0.1`.
+- No se debe publicar ni exponer este servidor en una IP pública, túnel o alojamiento web.
+- Los análisis de almacenamiento son de solo lectura.
+- No se siguen enlaces simbólicos durante el recorrido.
+- Los errores y exclusiones se informan para no presentar una cobertura parcial como completa.
+- La aplicación no envía nombres de archivos, rutas ni inventarios de discos a servicios externos.
+- Las acciones de limpieza disponibles son independientes del escaneo y requieren confirmación.
+
+**Importante:** los tamaños de archivos representan tamaño lógico, no necesariamente espacio físico asignado en NTFS. Los análisis del perfil no equivalen a un inventario completo de todo el disco.
+
+## Validación y estado
+
+- CI de GitHub Actions: pruebas en Ubuntu y Windows.
+- P0/P1: 17 pruebas automatizadas aprobadas en ambos runners para el commit de Storage Intelligence 2.0.
+- La CI usa máquinas virtuales. Aún se recomienda validar en equipos físicos Windows 10/11, unidades NTFS secundarias/removibles, perfiles redirigidos y carpetas con permisos restringidos.
+- La versión 2.0 sigue en desarrollo. Las fases de árbol de carpetas, categorías, mapa visual, duplicados y reportes están en la hoja de ruta.
+
 ## Tecnologías
 
-Python · Flask · psutil · HTML · CSS · JavaScript
-
-## Límites conocidos
-
-- No reemplaza las herramientas oficiales de diagnóstico y mantenimiento de Windows.
-- No realiza benchmarks ni promete aumentar el rendimiento del equipo.
-- No se ha verificado un instalador empaquetado ni la compatibilidad con todas las variantes de Windows.
-- Las funciones de limpieza requieren pruebas adicionales en entornos controlados antes de considerarse listas para producción.
+Python · Flask · psutil · HTML · CSS · JavaScript · GitHub Actions
 
 ## Licencia
 

@@ -34,5 +34,32 @@ class LocalDashboardTests(unittest.TestCase):
         self.assertEqual(response.get_json()["results"][0]["status"], "rechazado")
 
 
+
+    def test_background_scan_rejects_invalid_kind(self):
+        response = self.client.post("/api/storage/scans", json={"kind": "unknown"})
+        self.assertEqual(response.status_code, 400)
+
+    def test_background_scan_returns_job_identifier(self):
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as directory:
+            (Path(directory) / "sample.bin").write_bytes(b"nexus")
+            response = self.client.post("/api/storage/scans", json={
+                "kind": "large_files", "root": directory, "min_size_mb": 1
+            })
+            self.assertEqual(response.status_code, 202)
+            payload = response.get_json()
+            self.assertTrue(payload["scan_id"])
+            status = self.client.get("/api/storage/scans/" + payload["scan_id"])
+            self.assertEqual(status.status_code, 200)
+            self.assertIn(status.get_json()["status"], {
+                "queued", "running", "completed", "completed_with_warnings"
+            })
+
+    def test_unknown_background_scan_returns_404(self):
+        response = self.client.get("/api/storage/scans/not-a-real-job")
+        self.assertEqual(response.status_code, 404)
+
 if __name__ == "__main__":
     unittest.main()
