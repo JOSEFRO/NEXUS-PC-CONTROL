@@ -4,6 +4,7 @@ import os
 import platform
 import shutil
 import string
+import time
 from pathlib import Path
 
 GIB = 1024 ** 3
@@ -117,18 +118,15 @@ def get_overview():
     }
 
 
-def _walk_path(path, max_depth=None, excluded_dirs=None):
-    """Walk a path without following symlinks and account for skipped/error paths."""
+def _walk_path(path, max_depth=None, excluded_dirs=None, progress_callback=None, cancel_event=None):
+    """Walk without following symlinks; expose counters and cooperative cancellation."""
     base = Path(path)
     excluded = DEFAULT_EXCLUDED_DIRS if excluded_dirs is None else set(excluded_dirs)
     totals = {
-        "bytes": 0,
-        "files": 0,
-        "directories": 0,
-        "errors": [],
-        "excluded_directories": [],
-        "skipped_symlinks": 0,
+        "bytes": 0, "files": 0, "directories": 0, "errors": [],
+        "excluded_directories": [], "skipped_symlinks": 0, "cancelled": False,
     }
+    last_report = time.monotonic()
 
     def onerror(error):
         totals["errors"].append({
@@ -136,20 +134,34 @@ def _walk_path(path, max_depth=None, excluded_dirs=None):
             "error": str(error),
         })
 
+    def report(force=False):
+        nonlocal last_report
+        now = time.monotonic()
+        if progress_callback and (force or now - last_report >= 0.25):
+            progress_callback({
+                "bytes": totals["bytes"], "files": totals["files"],
+                "directories": totals["directories"], "errors": len(totals["errors"]),
+            })
+            last_report = now
+
     if not base.exists():
         totals["errors"].append({"path": str(base), "error": "La ruta no existe o no es accesible."})
+        report(True)
         return totals
     if not base.is_dir():
         totals["errors"].append({"path": str(base), "error": "La ruta seleccionada no es una carpeta."})
+        report(True)
         return totals
 
     try:
         base_depth = len(base.parts)
         for current, dirs, files in os.walk(base, topdown=True, followlinks=False, onerror=onerror):
+            if cancel_event and cancel_event.is_set():
+                totals["cancelled"] = True
+                break
             current_path = Path(current)
             depth = len(current_path.parts) - base_depth
             totals["directories"] += 1
-
             kept_dirs = []
             for name in dirs:
                 child = current_path / name
@@ -164,21 +176,29 @@ def _walk_path(path, max_depth=None, excluded_dirs=None):
             dirs[:] = kept_dirs
 
             for name in files:
+                if cancel_event and cancel_event.is_set():
+                    totals["cancelled"] = True
+                    break
                 item = current_path / name
                 try:
                     if item.is_symlink():
                         totals["skipped_symlinks"] += 1
                         continue
                     stat = item.stat(follow_symlinks=False)
-                    if not item.is_file():
-                        continue
-                    totals["bytes"] += stat.st_size
-                    totals["files"] += 1
+                    if item.is_file():
+                        totals["bytes"] += stat.st_size
+                        totals["files"] += 1
+                        report()
                 except OSError as exc:
                     totals["errors"].append({"path": str(item), "error": str(exc)})
+                    report()
+            report()
+            if totals["cancelled"]:
+                break
     except OSError as exc:
         totals["errors"].append({"path": str(base), "error": str(exc)})
 
+    report(True)
     return totals
 
 
@@ -187,37 +207,29 @@ def folder_size(path, max_depth=None):
     return _walk_path(path, max_depth=max_depth)["bytes"]
 
 
-def scan_system(max_depth=None):
-    """Measure common profile folders and report scan coverage for each folder."""
+def scan_system(max_depth=None, progress_callback=None, cancel_event=None):
+    """Measure common profile folders and report coverage, progress and cancellation."""
     home = Path.home()
     candidates = [
-        ("Descargas", home / "Downloads"),
-        ("Escritorio", home / "Desktop"),
-        ("Documentos", home / "Documents"),
-        ("Imágenes", home / "Pictures"),
-        ("Vídeos", home / "Videos"),
-        ("AppData Local", home / "AppData" / "Local"),
+        ("Descargas", home / "Downloads"), ("Escritorio", home / "Desktop"),
+        ("Documentos", home / "Documents"), ("Imágenes", home / "Pictures"),
+        ("Vídeos", home / "Videos"), ("AppData Local", home / "AppData" / "Local"),
         ("AppData Roaming", home / "AppData" / "Roaming"),
     ]
-
-    # Include redirected/OneDrive known-folder candidates when present.
     onedrive = os.environ.get("OneDrive")
     if onedrive:
         cloud = Path(onedrive)
-        candidates.extend([
-            ("OneDrive", cloud),
-            ("OneDrive Documentos", cloud / "Documents"),
-            ("OneDrive Imágenes", cloud / "Pictures"),
-        ])
+        candidates.extend([("OneDrive", cloud), ("OneDrive Documentos", cloud / "Documents"),
+                           ("OneDrive Imágenes", cloud / "Pictures")])
 
-    rows = []
-    errors = []
-    excluded = []
-    skipped_symlinks = 0
-    total_files = total_bytes = 0
-
+    rows, errors, excluded = [], [], []
+    skipped_symlinks = total_files = total_bytes = total_dirs = 0
+    cancelled = False
     seen = set()
     for label, path in candidates:
+        if cancel_event and cancel_event.is_set():
+            cancelled = True
+            break
         try:
             resolved = str(path.resolve())
         except OSError:
@@ -225,33 +237,43 @@ def scan_system(max_depth=None):
         if resolved in seen or not path.is_dir():
             continue
         seen.add(resolved)
-        stats = _walk_path(path, max_depth=max_depth)
+        base_files, base_bytes, base_dirs, base_errors = total_files, total_bytes, total_dirs, len(errors)
+
+        def folder_progress(values):
+            if progress_callback:
+                progress_callback({
+                    "files": base_files + values["files"],
+                    "bytes": base_bytes + values["bytes"],
+                    "directories": base_dirs + values["directories"],
+                    "errors": base_errors + values["errors"],
+                })
+
+        stats = _walk_path(path, max_depth=max_depth, progress_callback=folder_progress,
+                           cancel_event=cancel_event)
         total_files += stats["files"]
         total_bytes += stats["bytes"]
+        total_dirs += stats["directories"]
         errors.extend(stats["errors"])
         excluded.extend(stats["excluded_directories"])
         skipped_symlinks += stats["skipped_symlinks"]
+        cancelled = cancelled or stats["cancelled"]
         rows.append({
-            "name": label,
-            "path": str(path),
-            "size_bytes": stats["bytes"],
-            "size_gb": round(stats["bytes"] / GIB, 2),
-            "files": stats["files"],
-            "directories": stats["directories"],
-            "errors": len(stats["errors"]),
+            "name": label, "path": str(path), "size_bytes": stats["bytes"],
+            "size_gb": round(stats["bytes"] / GIB, 2), "files": stats["files"],
+            "directories": stats["directories"], "errors": len(stats["errors"]),
             "excluded_directories": len(stats["excluded_directories"]),
         })
+        if cancelled:
+            break
 
     rows.sort(key=lambda row: row["size_bytes"], reverse=True)
     return {
         "folders": rows,
         "coverage": {
-            "files": total_files,
-            "bytes": total_bytes,
-            "errors": len(errors),
-            "excluded_directories": len(excluded),
-            "skipped_symlinks": skipped_symlinks,
-            "complete": not errors and not excluded,
+            "files": total_files, "bytes": total_bytes, "directories": total_dirs,
+            "errors": len(errors), "excluded_directories": len(excluded),
+            "skipped_symlinks": skipped_symlinks, "cancelled": cancelled,
+            "complete": not errors and not excluded and not cancelled,
             "scope": "Carpetas habituales del perfil de usuario; no representa todo el disco.",
         },
         "errors": errors[:100],
@@ -259,30 +281,40 @@ def scan_system(max_depth=None):
     }
 
 
-def scan_large_files(root=None, min_size_bytes=GIB, limit=100, max_depth=None):
-    """Find large files under a selected root; read-only and configurable."""
+def scan_large_files(root=None, min_size_bytes=GIB, limit=100, max_depth=None,
+                    progress_callback=None, cancel_event=None):
+    """Find large files under a selected root; read-only with progress and cancellation."""
     scan_root = Path(root).expanduser() if root else Path.home()
     if not scan_root.exists() or not scan_root.is_dir():
-        return {
-            "files": [],
-            "error": "La ruta seleccionada no existe o no es una carpeta accesible.",
-            "coverage": {"complete": False, "errors": 1},
-        }
+        return {"files": [], "error": "La ruta seleccionada no existe o no es una carpeta accesible.",
+                "coverage": {"complete": False, "errors": 1}}
 
     threshold = max(0, int(min_size_bytes))
     limit = max(1, min(int(limit), 1000))
-    found = []
-    errors = []
-    excluded = []
-    skipped_symlinks = 0
+    found, errors, excluded = [], [], []
+    skipped_symlinks = files_seen = dirs_seen = bytes_seen = 0
+    cancelled = False
+    last_report = time.monotonic()
 
     def onerror(error):
         errors.append({"path": getattr(error, "filename", None) or str(scan_root), "error": str(error)})
 
+    def report(force=False):
+        nonlocal last_report
+        now = time.monotonic()
+        if progress_callback and (force or now - last_report >= 0.25):
+            progress_callback({"files": files_seen, "directories": dirs_seen,
+                               "bytes": bytes_seen, "errors": len(errors)})
+            last_report = now
+
     base_depth = len(scan_root.parts)
     for current, dirs, files in os.walk(scan_root, topdown=True, followlinks=False, onerror=onerror):
+        if cancel_event and cancel_event.is_set():
+            cancelled = True
+            break
         current_path = Path(current)
         depth = len(current_path.parts) - base_depth
+        dirs_seen += 1
         kept = []
         for name in dirs:
             child = current_path / name
@@ -297,34 +329,38 @@ def scan_large_files(root=None, min_size_bytes=GIB, limit=100, max_depth=None):
         dirs[:] = kept
 
         for name in files:
+            if cancel_event and cancel_event.is_set():
+                cancelled = True
+                break
             item = current_path / name
             try:
                 if item.is_symlink():
                     skipped_symlinks += 1
                     continue
                 stat = item.stat(follow_symlinks=False)
-                if stat.st_size >= threshold and item.is_file():
-                    found.append({
-                        "name": name,
-                        "path": str(item),
-                        "size_bytes": stat.st_size,
-                        "size_gb": round(stat.st_size / GIB, 3),
-                    })
+                if item.is_file():
+                    files_seen += 1
+                    bytes_seen += stat.st_size
+                    if stat.st_size >= threshold:
+                        found.append({"name": name, "path": str(item), "size_bytes": stat.st_size,
+                                      "size_gb": round(stat.st_size / GIB, 3)})
             except OSError as exc:
                 errors.append({"path": str(item), "error": str(exc)})
+            report()
+        report()
+        if cancelled:
+            break
 
     found.sort(key=lambda row: row["size_bytes"], reverse=True)
+    report(True)
     return {
         "files": found[:limit],
         "coverage": {
-            "root": str(scan_root),
-            "threshold_bytes": threshold,
-            "matched": len(found),
-            "returned": min(len(found), limit),
-            "errors": len(errors),
-            "excluded_directories": len(excluded),
-            "skipped_symlinks": skipped_symlinks,
-            "complete": not errors and not excluded,
+            "root": str(scan_root), "threshold_bytes": threshold, "matched": len(found),
+            "returned": min(len(found), limit), "files": files_seen, "directories": dirs_seen,
+            "bytes": bytes_seen, "errors": len(errors), "excluded_directories": len(excluded),
+            "skipped_symlinks": skipped_symlinks, "cancelled": cancelled,
+            "complete": not errors and not excluded and not cancelled,
         },
         "errors": errors[:100],
         "note": "Solo lectura. No se elimina ni modifica ningún archivo.",
