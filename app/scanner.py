@@ -68,13 +68,17 @@ def get_overview():
     errors = []
 
     if os.name == "nt":
-        for letter in string.ascii_uppercase:
-            root = Path(f"{letter}:/")
-            # exists() can be false for an empty removable drive; GetDriveType
-            # distinguishes an assigned but not-ready device from no drive.
-            drive_type = _drive_type(root)
-            if drive_type == "unknown" and not root.exists():
+        import ctypes
+
+        try:
+            logical_mask = ctypes.windll.kernel32.GetLogicalDrives()
+        except (AttributeError, OSError):
+            logical_mask = 0
+        for index, letter in enumerate(string.ascii_uppercase):
+            if not (logical_mask & (1 << index)):
                 continue
+            root = Path(f"{letter}:/")
+            drive_type = _drive_type(root)
             row, error = _volume_row(root, drive_type)
             if row:
                 drives.append(row)
