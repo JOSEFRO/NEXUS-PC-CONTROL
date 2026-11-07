@@ -47,3 +47,18 @@ footer{display:flex;justify-content:space-between;gap:15px;border-top:1px solid 
 .josefro-app-mark{animation:jf-electric 3.4s ease-in-out infinite;transform-origin:center}
 @keyframes jf-electric{0%,100%{filter:drop-shadow(0 0 4px #28aaff44) drop-shadow(0 4px 12px #2b91ff22)}43%{filter:drop-shadow(0 0 9px #28dfffaa) drop-shadow(0 0 20px #527cff66) brightness(1.08)}48%{filter:drop-shadow(0 0 14px #b1f8ff) drop-shadow(0 0 28px #597cffbb) brightness(1.2)}53%{filter:drop-shadow(0 0 4px #28aaff44) drop-shadow(0 4px 12px #2b91ff22)}}
 @media(prefers-reduced-motion:reduce){.josefro-app-mark{animation:none}}
+
+
+/* Diagnostics additions: show every detected volume, not just the first one. */
+.skip-link{position:absolute;left:-9999px;top:10px;z-index:1000;padding:10px 14px;background:#eafcff;color:#07121c;border-radius:8px}
+.skip-link:focus{left:12px}
+.drive-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:18px 0}
+.drive-row{display:grid;grid-template-columns:1fr auto;gap:9px 12px;padding:13px;border:1px solid #263b55;border-radius:12px;background:#0c1625}
+.drive-info strong,.drive-info small{display:block;overflow-wrap:anywhere}
+.drive-info small{margin-top:4px;font-size:11px}
+.drive-percent{color:var(--cyan);font-variant-numeric:tabular-nums}
+.drive-meter{grid-column:1/-1;height:6px;overflow:hidden;border-radius:8px;background:#26384e}
+.drive-meter i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--cyan),var(--blue))}
+.error-message{padding:12px;border:1px solid #8a4652;border-radius:10px;background:#321b27;color:#ffc0c5}
+button:disabled{opacity:.55;cursor:wait}
+@media(max-width:800px){.drive-list{grid-template-columns:1fr}}
