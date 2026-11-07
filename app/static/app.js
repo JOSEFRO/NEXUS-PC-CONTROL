@@ -176,6 +176,7 @@
       const counters = make("small", "job-counters", "Esperando actividad…");
       const cancel = make("button", "job-cancel", "Cancelar análisis");
       cancel.type = "button";
+      cancel.disabled = true;
       let cancelRequested = false;
       cancel.addEventListener("click", async () => {
         if (cancelRequested) return;
@@ -194,6 +195,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ kind, ...options })
         });
+        cancel.disabled = false;
         while (true) {
           const snapshot = await getJSON("/api/storage/scans/" + job.scan_id);
           status.textContent = snapshot.phase + " · " + snapshot.status;
