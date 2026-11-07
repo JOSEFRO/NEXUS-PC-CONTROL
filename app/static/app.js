@@ -23,6 +23,19 @@
     container.replaceChildren(make("p", className, message));
   }
 
+  function appendCoverage(container, coverage) {
+    if (!container || !coverage) return;
+    const details = [];
+    if (coverage.files !== undefined) details.push(Number(coverage.files).toLocaleString("es-DO") + " archivos revisados");
+    if (coverage.errors !== undefined) details.push(Number(coverage.errors).toLocaleString("es-DO") + " errores");
+    if (coverage.excluded_directories !== undefined) details.push(Number(coverage.excluded_directories).toLocaleString("es-DO") + " carpetas excluidas");
+    if (coverage.skipped_symlinks !== undefined) details.push(Number(coverage.skipped_symlinks).toLocaleString("es-DO") + " enlaces omitidos");
+    const complete = coverage.complete === true;
+    const note = make("p", complete ? "muted" : "notice",
+      (complete ? "Cobertura del análisis: completa. " : "Cobertura parcial: revisa los elementos omitidos. ") + details.join(" · "));
+    container.append(note);
+  }
+
   async function getJSON(url, options) {
     const response = await fetch(url, {
       ...options,
@@ -51,7 +64,7 @@
       return;
     }
 
-    const primary = drives[0];
+    const primary = drives.find((drive) => drive.is_system) || drives[0];
     setText("diskUsed", number(primary.used_percent, 1) + "%");
     setText("diskFree", gb(primary.free_gb) + " libres de " + gb(primary.total_gb));
     if ($("diskBar")) $("diskBar").style.width = Math.max(0, Math.min(100, Number(primary.used_percent) || 0)) + "%";
@@ -59,7 +72,8 @@
     drives.forEach((drive) => {
       const row = make("article", "drive-row");
       const info = make("div", "drive-info");
-      info.append(make("strong", "", drive.drive || "Unidad"), make("small", "", gb(drive.used_gb) + " usados · " + gb(drive.free_gb) + " libres"));
+      const kind = drive.is_system ? " · Windows" : (drive.drive_type ? " · " + drive.drive_type : "");
+      info.append(make("strong", "", (drive.drive || "Unidad") + kind), make("small", "", gb(drive.used_gb) + " usados · " + gb(drive.free_gb) + " libres"));
       const meter = make("div", "drive-meter");
       const fill = make("i");
       fill.style.width = Math.max(0, Math.min(100, Number(drive.used_percent) || 0)) + "%";
@@ -69,12 +83,13 @@
     });
   }
 
-  function renderFolders(folders) {
+  function renderFolders(folders, coverage) {
     const list = $("folders");
     if (!list) return;
     list.replaceChildren();
     if (!Array.isArray(folders) || folders.length === 0) {
       showMessage(list, "No se encontraron carpetas accesibles.");
+      appendCoverage(list, coverage);
       return;
     }
     folders.forEach((item) => {
@@ -84,14 +99,16 @@
       row.append(details, make("strong", "size", gb(item.size_gb)));
       list.append(row);
     });
+    appendCoverage(list, coverage);
   }
 
-  function renderLargeFiles(files) {
+  function renderLargeFiles(files, coverage) {
     const list = $("largeFiles");
     if (!list) return;
     list.replaceChildren();
     if (!Array.isArray(files) || files.length === 0) {
-      showMessage(list, "No se encontraron archivos de 1 GB o más.");
+      showMessage(list, "No se encontraron archivos con ese tamaño mínimo.");
+      appendCoverage(list, coverage);
       return;
     }
     files.forEach((item) => {
@@ -101,6 +118,7 @@
       row.append(details, make("strong", "size", gb(item.size_gb)));
       list.append(row);
     });
+    appendCoverage(list, coverage);
   }
 
   function renderCleanup(items) {
@@ -156,7 +174,7 @@
         getJSON("/api/cleanup")
       ]);
       renderDrives(overview.drives);
-      renderFolders(scan.folders);
+      renderFolders(scan.folders, scan.coverage);
       renderCleanup(cleanup.items);
       await loadHealth();
     } catch (error) {
@@ -169,10 +187,11 @@
   async function loadLarge() {
     if (state.largeFiles) return;
     state.largeFiles = true;
-    showMessage($("largeFiles"), "Buscando archivos grandes en el perfil del usuario…");
+    const threshold = Math.max(1, Math.min(1048576, Number.parseInt($("largeThreshold")?.value || "1024", 10) || 1024));
+    showMessage($("largeFiles"), "Buscando archivos de " + threshold + " MB o más en el perfil del usuario…");
     try {
-      const data = await getJSON("/api/large-files");
-      renderLargeFiles(data.files);
+      const data = await getJSON("/api/large-files?min_size_mb=" + threshold);
+      renderLargeFiles(data.files, data.coverage);
     } catch (error) {
       showMessage($("largeFiles"), "No se pudo completar la búsqueda: " + error.message, "error-message");
     } finally {
