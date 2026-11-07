@@ -1,7 +1,7 @@
 # NEXUS Storage Intelligence 2.0
 ## Technical specification and implementation roadmap
 
-**Status:** planning baseline  
+**Status:** P0 implemented; P1 implemented in the feature branch and awaiting CI review  
 **Target:** Windows 10/11 desktop environment  
 **Branch:** `feature/storage-intelligence-2.0`  
 **Principle:** preserve the existing application and implement changes incrementally; do not merge into `main` until Windows validation passes.
@@ -150,7 +150,7 @@ Progress must be based on actual work counters. If total work is unknown, show a
 ## 9. Delivery phases
 
 1. **P0 — correctness foundation:** volume discovery, recursive scanner, error accounting, path safety and tests.
-2. **P1 — background scan jobs:** job manager, progress, cancellation and API.
+2. **P1 — background scan jobs:** implemented on the feature branch: bounded in-process job manager, threaded scans, real file/directory/byte counters, indeterminate progress UI, polling, cooperative cancellation, partial results and job API. Pause is intentionally deferred because the current filesystem walker has no safe pause boundary. Added unit and API tests; CI and physical Windows validation remain release gates.
 3. **P2 — analysis views:** folder tree, large files, categories and exports.
 4. **P3 — visual storage map:** interactive treemap and filters.
 5. **P4 — duplicate analysis:** staged hashing and duplicate review.
