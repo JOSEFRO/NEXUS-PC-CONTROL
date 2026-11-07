@@ -2,11 +2,24 @@ import platform
 from urllib.parse import urlsplit
 
 from flask import Flask, abort, jsonify, render_template, request
-from .scanner import get_overview, scan_system, scan_large_files
+from .scanner import get_overview, scan_system, scan_large_files, MIB, GIB
 from .cleaner import get_cleanup_candidates, clean_selected
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024
+
+
+def _optional_int(name, default, minimum, maximum):
+    raw = request.args.get(name)
+    if raw is None:
+        return default
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        abort(400, description=f"El parámetro {name} debe ser un número entero.")
+    if value < minimum or value > maximum:
+        abort(400, description=f"El parámetro {name} está fuera del rango permitido.")
+    return value
 
 
 @app.before_request
@@ -39,12 +52,26 @@ def overview():
 
 @app.get("/api/scan")
 def scan():
-    return jsonify(scan_system())
+    max_depth = request.args.get("max_depth")
+    if max_depth is not None:
+        max_depth = _optional_int("max_depth", None, 0, 64)
+    return jsonify(scan_system(max_depth=max_depth))
 
 
 @app.get("/api/large-files")
 def large_files():
-    return jsonify(scan_large_files())
+    threshold_mb = _optional_int("min_size_mb", 1024, 1, 1024 * 1024)
+    limit = _optional_int("limit", 100, 1, 1000)
+    max_depth = request.args.get("max_depth")
+    if max_depth is not None:
+        max_depth = _optional_int("max_depth", None, 0, 64)
+    root = request.args.get("root") or None
+    return jsonify(scan_large_files(
+        root=root,
+        min_size_bytes=threshold_mb * MIB,
+        limit=limit,
+        max_depth=max_depth,
+    ))
 
 
 @app.get("/api/cleanup")
@@ -71,8 +98,8 @@ def health():
     return jsonify({
         "cpu_percent": psutil.cpu_percent(interval=0.4),
         "ram_percent": vm.percent,
-        "ram_total_gb": round(vm.total / 1024**3, 1),
-        "ram_available_gb": round(vm.available / 1024**3, 1),
+        "ram_total_gb": round(vm.total / GIB, 1),
+        "ram_available_gb": round(vm.available / GIB, 1),
         "python": platform.python_version(),
         "windows": platform.platform()
     })
