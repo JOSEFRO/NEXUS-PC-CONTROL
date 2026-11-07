@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#090d16"><meta name="description" content="NEXUS PC CONTROL: diagnóstico local de almacenamiento y recursos del sistema Windows."><meta name="color-scheme" content="dark">
 <title>NEXUS PC CONTROL — Centro de diagnóstico</title><link rel="stylesheet" href="/static/style.css"></head>
-<body><aside class="sidebar"><div class="brand"><span class="mark">N</span><div><b>NEXUS</b><small>PC CONTROL</small></div></div>
+<body><aside class="sidebar"><div class="brand"><img class="josefro-app-mark" src="/static/josefro-mark.svg" alt="JOSEFRO"><div><b>NEXUS</b><small>PC CONTROL <i>BY JOSEFRO</i></small></div></div>
 <nav><a class="active" href="#overview">◈ Resumen</a><a href="#storage">▤ Almacenamiento</a><a href="#large">⌕ Archivos grandes</a><a href="#cleaner">✦ Limpieza segura</a><a href="#health">⌁ Rendimiento</a></nav>
 <div class="side-note">MODO LOCAL <span class="local-pulse"></span><br><span>Los datos permanecen en tu PC.</span></div></aside>
 <main><header><div><p class="eyebrow">NEXUS / SYSTEM INTELLIGENCE</p><h1>Conoce el estado de tu PC.</h1><p class="muted">Diagnóstico local de almacenamiento, memoria y rendimiento.</p></div><button class="primary" onclick="runScan()">⟳ Analizar ahora</button></header>
@@ -11,4 +11,4 @@
 <section id="large" class="panel"><div class="section-head"><div><p class="eyebrow">02 / LARGE FILES</p><h2>Archivos de gran tamaño</h2></div><button onclick="loadLarge()">Buscar archivos ≥ 1 GB</button></div><div id="largeFiles" class="folder-list"><p class="muted">Escaneo bajo demanda.</p></div></section>
 <section id="cleaner" class="panel"><div class="section-head"><div><p class="eyebrow">03 / SAFE CLEANER</p><h2>Limpieza selectiva</h2></div><button class="danger" onclick="cleanSelected()">Limpiar seleccionados</button></div><p class="notice">Revisa cada elemento antes de confirmar.</p><div id="cleanItems" class="folder-list"></div><div id="cleanResult" class="muted"></div></section>
 <section id="health" class="panel"><div class="section-head"><div><p class="eyebrow">04 / SYSTEM HEALTH</p><h2>Estado del equipo</h2></div><button onclick="loadHealth()">Actualizar</button></div><div id="healthInfo" class="muted">Consultando recursos...</div></section>
-<footer>NEXUS PC CONTROL · v1.0 · Diagnóstico local</footer></main><script src="/static/app.js"></script></body></html>
+<footer><img class="josefro-footer-logo" src="/static/josefro-logo.svg" alt="JOSEFRO"><span>NEXUS PC CONTROL · v1.0 · Diagnóstico local</span></footer></main><script src="/static/app.js"></script></body></html>
