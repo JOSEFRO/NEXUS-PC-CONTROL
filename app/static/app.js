@@ -317,6 +317,7 @@
   async function openStorageFolder(categoryId, relativePath) {
     const explorer = $("storageExplorer");
     if (!explorer) return;
+    if (activeStorageCategory !== categoryId) selectedStorageFiles.clear();
     activeStorageCategory = categoryId;
     activeStoragePath = relativePath || "";
     explorer.hidden = false;
