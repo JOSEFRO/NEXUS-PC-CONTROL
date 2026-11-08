@@ -242,7 +242,8 @@
         getJSON("/api/overview"), getJSON("/api/cleanup")
       ]);
       renderDrives(overview.drives);
-      renderCleanup(cleanup.items);\n      await loadStorageCategories();
+      renderCleanup(cleanup.items);
+      await loadStorageCategories();
       await runBackgroundScan("profile", {}, "profileJob", (scan) => renderFolders(scan.folders, scan.coverage));
       await loadHealth();
     } catch (error) {
