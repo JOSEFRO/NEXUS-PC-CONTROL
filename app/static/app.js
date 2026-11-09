@@ -319,9 +319,10 @@
   async function openStorageFolder(categoryId, relativePath) {
     const explorer = $("storageExplorer");
     if (!explorer) return;
-    if (activeStorageCategory !== categoryId) selectedStorageFiles.clear();
+    if (activeStorageCategory !== categoryId || activeStoragePath !== (relativePath || "")) selectedStorageFiles.clear();
     activeStorageCategory = categoryId;
     activeStoragePath = relativePath || "";
+    const requestId = ++storageNavigationRequest;
     explorer.hidden = false;
     showMessage(explorer, "Leyendo contenido de la carpeta…");
     try {
