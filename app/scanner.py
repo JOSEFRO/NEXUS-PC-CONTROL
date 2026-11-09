@@ -369,6 +369,16 @@ def scan_large_files(root=None, min_size_bytes=GIB, limit=100, max_depth=None,
 
 
 # Explicit, allow-listed roots for the in-app file explorer.
+def _is_storage_link(path):
+    try:
+        info = path.lstat()
+        attributes = getattr(info, "st_file_attributes", 0)
+        reparse_flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+        return stat.S_ISLNK(info.st_mode) or (os.name == "nt" and bool(attributes & reparse_flag))
+    except OSError:
+        return True
+
+
 def storage_categories():
     home = Path.home()
     candidates = [
@@ -386,7 +396,7 @@ def storage_categories():
     result = []
     for category_id, label, path, deletable in candidates:
         try:
-            if path.is_dir() and not path.is_symlink():
+            if path.is_dir() and not _is_storage_link(path):
                 result.append({"id": category_id, "name": label, "path": str(path),
                                "deletable": deletable})
         except OSError:
