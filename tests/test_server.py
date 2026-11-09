@@ -78,6 +78,12 @@ class LocalDashboardTests(unittest.TestCase):
         })
         self.assertEqual(response.status_code, 400)
 
+    def test_storage_delete_rejects_non_string_category(self):
+        response = self.client.post("/api/storage/delete", json={
+            "category": {"unexpected": "object"}, "paths": ["file.txt"]
+        })
+        self.assertEqual(response.status_code, 400)
+
     def test_storage_delete_rejects_symlinked_parent(self):
         import tempfile
         from pathlib import Path
@@ -91,7 +97,10 @@ class LocalDashboardTests(unittest.TestCase):
             outside.mkdir()
             protected = outside / "keep.txt"
             protected.write_text("keep")
-            (root / "shortcut").symlink_to(outside, target_is_directory=True)
+            try:
+                (root / "shortcut").symlink_to(outside, target_is_directory=True)
+            except OSError:
+                self.skipTest("El entorno no permite crear enlaces simbólicos.")
             with patch.object(scanner, "storage_categories", return_value=[
                 {"id": "downloads", "name": "Descargas", "path": str(root), "deletable": True}
             ]):
