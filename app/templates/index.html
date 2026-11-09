@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#090d16">
+  <meta name="theme-color" content="#050a14">
   <meta name="description" content="NEXUS PC CONTROL: diagnóstico local de almacenamiento y recursos de Windows, con revisión manual antes de cualquier limpieza.">
   <meta name="color-scheme" content="dark">
   <title>NEXUS PC CONTROL — Centro de diagnóstico</title>
   <link rel="icon" href="/static/josefro-mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/static/style.css?v=20261107-storage-p1-publish">
+  <link rel="stylesheet" href="/static/style.css?v=20261107-brifan-visual">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Saltar al contenido</a>
@@ -34,6 +34,9 @@
       <div id="drives" class="drive-list" aria-label="Unidades detectadas"><p class="muted">Consultando unidades...</p></div>
       <div id="profileJob" class="job-panel" aria-live="polite"></div>
       <div id="folders" class="folder-list" aria-live="polite"><p class="muted">Pulsa Analizar ahora para comenzar.</p></div>
+      <div class="section-head"><div><p class="eyebrow">EXPLORADOR</p><h3>Explorar todas las categorías</h3></div></div>
+      <div id="storageCategories" class="category-grid" aria-live="polite"><p class="muted">Las categorías aparecerán al analizar.</p></div>
+      <div id="storageExplorer" class="storage-explorer" aria-live="polite" hidden></div>
     </section>
     <section id="large" class="panel">
       <div class="section-head"><div><p class="eyebrow">02 / LARGE FILES</p><h2>Archivos de gran tamaño</h2></div><div class="scan-controls"><label for="largeThreshold">Tamaño mínimo (MB)</label><input id="largeThreshold" type="number" min="1" max="1048576" value="1024"><button type="button" onclick="loadLarge()">Buscar archivos</button></div></div>
@@ -52,6 +55,6 @@
     </section>
     <footer><img class="josefro-footer-logo" src="/static/josefro-logo.svg" alt="JOSEFRO"><span>NEXUS PC CONTROL · v2.0 BETA · Diagnóstico local</span></footer>
   </main>
-  <script src="/static/app.js?v=20261107-storage-p0"></script>
+  <script src="/static/app.js?v=20261107-storage-explorer"></script>
 </body>
 </html>

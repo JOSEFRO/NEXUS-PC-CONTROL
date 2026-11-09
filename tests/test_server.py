@@ -57,6 +57,75 @@ class LocalDashboardTests(unittest.TestCase):
                 "queued", "running", "completed", "completed_with_warnings"
             })
 
+    def test_storage_categories_endpoint_returns_list(self):
+        response = self.client.get("/api/storage/categories")
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.get_json()["categories"], list)
+
+    def test_storage_browse_rejects_unknown_category(self):
+        response = self.client.get("/api/storage/browse/not-allowed")
+        self.assertEqual(response.status_code, 400)
+
+    def test_storage_delete_rejects_protected_category(self):
+        response = self.client.post("/api/storage/delete", json={
+            "category": "appdata_local", "paths": ["sample.txt"]
+        })
+        self.assertEqual(response.status_code, 400)
+
+    def test_storage_delete_rejects_invalid_payload(self):
+        response = self.client.post("/api/storage/delete", json={
+            "category": "downloads", "paths": "../outside.txt"
+        })
+        self.assertEqual(response.status_code, 400)
+
+    def test_storage_delete_rejects_non_string_category(self):
+        response = self.client.post("/api/storage/delete", json={
+            "category": {"unexpected": "object"}, "paths": ["file.txt"]
+        })
+        self.assertEqual(response.status_code, 400)
+
+    def test_storage_delete_rejects_symlinked_parent(self):
+        import tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        from app import scanner
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "Downloads"
+            outside = Path(directory) / "outside"
+            root.mkdir()
+            outside.mkdir()
+            protected = outside / "keep.txt"
+            protected.write_text("keep")
+            try:
+                (root / "shortcut").symlink_to(outside, target_is_directory=True)
+            except OSError:
+                self.skipTest("El entorno no permite crear enlaces simbólicos.")
+            with patch.object(scanner, "storage_categories", return_value=[
+                {"id": "downloads", "name": "Descargas", "path": str(root), "deletable": True}
+            ]):
+                result = scanner.delete_storage_files("downloads", ["shortcut/keep.txt"])
+            self.assertEqual(result["deleted"], 0)
+            self.assertTrue(protected.exists())
+
+    def test_storage_delete_removes_only_regular_file(self):
+        import tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        from app import scanner
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "Downloads"
+            root.mkdir()
+            target = root / "sample.txt"
+            target.write_text("nexus")
+            with patch.object(scanner, "storage_categories", return_value=[
+                {"id": "downloads", "name": "Descargas", "path": str(root), "deletable": True}
+            ]):
+                result = scanner.delete_storage_files("downloads", ["sample.txt"])
+            self.assertEqual(result["deleted"], 1)
+            self.assertFalse(target.exists())
+
     def test_unknown_background_scan_returns_404(self):
         response = self.client.get("/api/storage/scans/not-a-real-job")
         self.assertEqual(response.status_code, 404)

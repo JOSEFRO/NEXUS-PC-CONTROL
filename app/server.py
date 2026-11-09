@@ -2,7 +2,7 @@ import platform
 from urllib.parse import urlsplit
 
 from flask import Flask, abort, jsonify, render_template, request
-from .scanner import get_overview, scan_system, scan_large_files, MIB, GIB
+from .scanner import get_overview, scan_system, scan_large_files, storage_categories, browse_storage_category, delete_storage_files, MIB, GIB
 from .cleaner import get_cleanup_candidates, clean_selected
 from .scan_jobs import scan_jobs
 
@@ -125,6 +125,37 @@ def cancel_storage_scan(scan_id):
         return jsonify({"error": "No se encontró ese análisis o ya expiró."}), 404
     return jsonify(job), 202
 
+
+
+
+@app.get("/api/storage/categories")
+def storage_category_list():
+    return jsonify({"categories": storage_categories()})
+
+
+@app.get("/api/storage/browse/<category_id>")
+def storage_browse(category_id):
+    relative_path = request.args.get("path", "")
+    if len(relative_path) > 2048:
+        return jsonify({"error": "La ruta es demasiado larga."}), 400
+    try:
+        return jsonify(browse_storage_category(category_id, relative_path))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+
+@app.post("/api/storage/delete")
+def storage_delete():
+    payload = request.get_json(silent=True) or {}
+    if not isinstance(payload, dict):
+        return jsonify({"error": "Solicitud inválida."}), 400
+    category_id = payload.get("category")
+    paths = payload.get("paths")
+    try:
+        result = delete_storage_files(category_id, paths)
+        return jsonify(result)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
 
 @app.get("/api/cleanup")
 def cleanup_candidates():

@@ -3,6 +3,7 @@
 import os
 import platform
 import shutil
+import stat
 import string
 import time
 from pathlib import Path
@@ -365,3 +366,148 @@ def scan_large_files(root=None, min_size_bytes=GIB, limit=100, max_depth=None,
         "errors": errors[:100],
         "note": "Solo lectura. No se elimina ni modifica ningún archivo.",
     }
+
+
+# Explicit, allow-listed roots for the in-app file explorer.
+def _is_storage_link(path):
+    try:
+        info = path.lstat()
+        attributes = getattr(info, "st_file_attributes", 0)
+        reparse_flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+        return stat.S_ISLNK(info.st_mode) or (os.name == "nt" and bool(attributes & reparse_flag))
+    except OSError:
+        return True
+
+
+def storage_categories():
+    home = Path.home()
+    candidates = [
+        ("downloads", "Descargas", home / "Downloads", True),
+        ("documents", "Documentos", home / "Documents", True),
+        ("desktop", "Escritorio", home / "Desktop", True),
+        ("pictures", "Imágenes", home / "Pictures", True),
+        ("videos", "Vídeos", home / "Videos", True),
+        ("music", "Música", home / "Music", True),
+        ("appdata_local", "AppData Local", home / "AppData" / "Local", False),
+        ("appdata_roaming", "AppData Roaming", home / "AppData" / "Roaming", False),
+        ("program_files", "Aplicaciones (Program Files)", Path(os.environ.get("ProgramFiles", "C:/Program Files")), False),
+        ("program_files_x86", "Aplicaciones (x86)", Path(os.environ.get("ProgramFiles(x86)", "C:/Program Files (x86)")), False),
+    ]
+    result = []
+    for category_id, label, path, deletable in candidates:
+        try:
+            if path.is_dir() and not _is_storage_link(path):
+                result.append({"id": category_id, "name": label, "path": str(path),
+                               "deletable": deletable})
+        except OSError:
+            continue
+    return result
+
+
+def _storage_path_without_links(root, relative_path, allow_empty=False):
+    """Resolve a relative path while rejecting symlinks/reparse points at every level."""
+    if not isinstance(relative_path, str) or len(relative_path) > 2048:
+        raise ValueError("La ruta solicitada no es válida.")
+    if not relative_path and allow_empty:
+        return root, root.stat()
+    if not relative_path:
+        raise ValueError("Debes indicar un archivo.")
+    raw_parts = relative_path.replace("\\", "/").split("/")
+    if any(part in {"", ".", ".."} for part in raw_parts):
+        raise ValueError("La ruta solicitada no es válida.")
+    relative = Path(relative_path)
+    if relative.is_absolute() or not relative.parts or any(part in {"..", "."} for part in relative.parts):
+        raise ValueError("La ruta solicitada no es válida.")
+
+    current = root
+    final_info = None
+    for index, part in enumerate(relative.parts):
+        current = current / part
+        info = current.lstat()
+        attributes = getattr(info, "st_file_attributes", 0)
+        reparse_flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+        if stat.S_ISLNK(info.st_mode) or (os.name == "nt" and attributes & reparse_flag):
+            raise ValueError("No se permite acceder a enlaces simbólicos o puntos de reanálisis.")
+        if index < len(relative.parts) - 1 and not stat.S_ISDIR(info.st_mode):
+            raise ValueError("La ruta intermedia no es una carpeta.")
+        final_info = info
+
+    resolved_root = root.resolve(strict=True)
+    resolved_target = current.resolve(strict=True)
+    if not resolved_target.is_relative_to(resolved_root):
+        raise ValueError("No se permite salir de la categoría seleccionada.")
+    return current, final_info
+
+
+def browse_storage_category(category_id, relative_path=""):
+    """List one directory under a fixed category root; never follow symlinks."""
+    categories = {item["id"]: item for item in storage_categories()}
+    category = categories.get(category_id)
+    if not category:
+        raise ValueError("Categoría no válida o no disponible.")
+    root = Path(category["path"]).resolve(strict=True)
+    try:
+        target, info = _storage_path_without_links(root, relative_path, allow_empty=True)
+        if not stat.S_ISDIR(info.st_mode):
+            raise ValueError("La ubicación solicitada no es una carpeta.")
+        entries = []
+        with os.scandir(target) as iterator:
+            for entry in iterator:
+                try:
+                    entry_info = entry.stat(follow_symlinks=False)
+                    attributes = getattr(entry_info, "st_file_attributes", 0)
+                    reparse_flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+                    if entry.is_symlink() or (os.name == "nt" and attributes & reparse_flag):
+                        continue
+                    is_dir = stat.S_ISDIR(entry_info.st_mode)
+                    if not is_dir and not stat.S_ISREG(entry_info.st_mode):
+                        continue
+                    entries.append({
+                        "name": entry.name,
+                        "relative_path": str(Path(relative_path) / entry.name) if relative_path else entry.name,
+                        "is_dir": is_dir,
+                        "size_bytes": 0 if is_dir else entry_info.st_size,
+                        "modified": entry_info.st_mtime,
+                    })
+                except OSError:
+                    continue
+        entries.sort(key=lambda item: (not item["is_dir"], -item["size_bytes"], item["name"].casefold()))
+        relative = Path(relative_path) if relative_path else Path()
+        return {"category": category, "relative_path": relative_path,
+                "parent_path": str(relative.parent) if relative.parts else None,
+                "entries": entries, "count": len(entries)}
+    except (OSError, RuntimeError) as exc:
+        raise ValueError("No se pudo leer esta carpeta: " + str(exc)) from exc
+
+
+def delete_storage_files(category_id, relative_paths):
+    """Delete only explicitly selected regular files in user-owned folders."""
+    if not isinstance(category_id, str):
+        raise ValueError("Categoría no válida.")
+    categories = {item["id"]: item for item in storage_categories()}
+    category = categories.get(category_id)
+    if not category or not category["deletable"]:
+        raise ValueError("Esta categoría está protegida y no permite eliminación desde NEXUS.")
+    if not isinstance(relative_paths, list) or not relative_paths or len(relative_paths) > 100:
+        raise ValueError("Selecciona entre 1 y 100 archivos.")
+    root = Path(category["path"]).resolve(strict=True)
+    results = []
+    for raw in relative_paths:
+        if not isinstance(raw, str):
+            results.append({"path": str(raw), "status": "rejected"})
+            continue
+        try:
+            target, info = _storage_path_without_links(root, raw)
+            if not stat.S_ISREG(info.st_mode):
+                results.append({"path": raw, "status": "rejected"})
+                continue
+            size = info.st_size
+            # Unlink the validated path itself, not its resolved target.
+            target.unlink()
+            results.append({"path": raw, "status": "deleted", "bytes_freed": size})
+        except ValueError:
+            results.append({"path": raw, "status": "rejected"})
+        except OSError as exc:
+            results.append({"path": raw, "status": "error", "error": str(exc)})
+    return {"results": results, "deleted": sum(x["status"] == "deleted" for x in results),
+            "bytes_freed": sum(x.get("bytes_freed", 0) for x in results)}
