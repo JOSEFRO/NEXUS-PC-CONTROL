@@ -472,6 +472,8 @@ def browse_storage_category(category_id, relative_path=""):
 
 def delete_storage_files(category_id, relative_paths):
     """Delete only explicitly selected regular files in user-owned folders."""
+    if not isinstance(category_id, str):
+        raise ValueError("Categoría no válida.")
     categories = {item["id"]: item for item in storage_categories()}
     category = categories.get(category_id)
     if not category or not category["deletable"]:
