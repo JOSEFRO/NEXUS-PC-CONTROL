@@ -78,6 +78,45 @@ class LocalDashboardTests(unittest.TestCase):
         })
         self.assertEqual(response.status_code, 400)
 
+    def test_storage_delete_rejects_symlinked_parent(self):
+        import tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        from app import scanner
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "Downloads"
+            outside = Path(directory) / "outside"
+            root.mkdir()
+            outside.mkdir()
+            protected = outside / "keep.txt"
+            protected.write_text("keep")
+            (root / "shortcut").symlink_to(outside, target_is_directory=True)
+            with patch.object(scanner, "storage_categories", return_value=[
+                {"id": "downloads", "name": "Descargas", "path": str(root), "deletable": True}
+            ]):
+                result = scanner.delete_storage_files("downloads", ["shortcut/keep.txt"])
+            self.assertEqual(result["deleted"], 0)
+            self.assertTrue(protected.exists())
+
+    def test_storage_delete_removes_only_regular_file(self):
+        import tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        from app import scanner
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "Downloads"
+            root.mkdir()
+            target = root / "sample.txt"
+            target.write_text("nexus")
+            with patch.object(scanner, "storage_categories", return_value=[
+                {"id": "downloads", "name": "Descargas", "path": str(root), "deletable": True}
+            ]):
+                result = scanner.delete_storage_files("downloads", ["sample.txt"])
+            self.assertEqual(result["deleted"], 1)
+            self.assertFalse(target.exists())
+
     def test_unknown_background_scan_returns_404(self):
         response = self.client.get("/api/storage/scans/not-a-real-job")
         self.assertEqual(response.status_code, 404)
