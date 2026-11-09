@@ -301,6 +301,7 @@
   let activeStorageCategory = null;
   let activeStoragePath = "";
   const selectedStorageFiles = new Set();
+  let storageNavigationRequest = 0;
 
   async function loadStorageCategories() {
     const data = await getJSON("/api/storage/categories");
@@ -326,6 +327,7 @@
     try {
       const data = await getJSON("/api/storage/browse/" + encodeURIComponent(categoryId) +
         "?path=" + encodeURIComponent(activeStoragePath));
+      if (requestId !== storageNavigationRequest) return;
       explorer.replaceChildren();
       const heading = make("div", "explorer-heading");
       const title = make("h3", "", data.category.name + (data.relative_path ? " / " + data.relative_path : ""));
@@ -377,7 +379,7 @@
       explorer.dataset.category = categoryId;
       updateDeleteSelection();
     } catch (error) {
-      showMessage(explorer, error.message, "error-message");
+      if (requestId === storageNavigationRequest) showMessage(explorer, error.message, "error-message");
     }
   }
 
