@@ -402,6 +402,9 @@ def _storage_path_without_links(root, relative_path, allow_empty=False):
         return root, root.stat()
     if not relative_path:
         raise ValueError("Debes indicar un archivo.")
+    raw_parts = relative_path.replace("\\", "/").split("/")
+    if any(part in {"", ".", ".."} for part in raw_parts):
+        raise ValueError("La ruta solicitada no es válida.")
     relative = Path(relative_path)
     if relative.is_absolute() or not relative.parts or any(part in {"..", "."} for part in relative.parts):
         raise ValueError("La ruta solicitada no es válida.")
