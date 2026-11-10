@@ -7,7 +7,7 @@ import time
 import uuid
 from copy import deepcopy
 
-from .scanner import scan_system, scan_large_files
+from .scanner import scan_system, scan_large_files\nfrom .duplicates import scan_duplicates
 
 TERMINAL = {"cancelled", "completed", "completed_with_warnings", "failed"}
 
@@ -88,6 +88,14 @@ class ScanJobManager:
                     progress_callback=callback,
                     cancel_event=cancel_event,
                 )
+            elif kind == "duplicates":
+                result = scan_duplicates(
+                    roots=[options["root"]],
+                    category=options.get("file_category", "all"),
+                    min_size_bytes=options.get("min_size_bytes", 1),
+                    progress_callback=callback,
+                    cancel_event=cancel_event,
+                )
             else:
                 result = scan_large_files(
                     root=options.get("root"),
@@ -101,8 +109,8 @@ class ScanJobManager:
             with self._lock:
                 job = self._jobs[job_id]
                 job["result"] = result
-                job["error_count"] = int(coverage.get("errors", 0))
-                if cancel_event.is_set() or coverage.get("cancelled"):
+                job["error_count"] = int(coverage.get("errors", len(result.get("errors", []))))
+                if cancel_event.is_set() or coverage.get("cancelled") or result.get("cancelled"):
                     job["status"] = "cancelled"
                     job["phase"] = "Análisis cancelado; resultados parciales disponibles"
                 elif result.get("error"):
