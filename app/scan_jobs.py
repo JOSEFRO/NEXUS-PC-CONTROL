@@ -7,7 +7,8 @@ import time
 import uuid
 from copy import deepcopy
 
-from .scanner import scan_system, scan_large_files\nfrom .duplicates import scan_duplicates
+from .scanner import scan_system, scan_large_files
+from .duplicates import scan_duplicates
 
 TERMINAL = {"cancelled", "completed", "completed_with_warnings", "failed"}
 
