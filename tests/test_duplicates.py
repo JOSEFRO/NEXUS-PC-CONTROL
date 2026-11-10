@@ -43,8 +43,9 @@ class DuplicateScannerTests(unittest.TestCase):
                 link.symlink_to(target, target_is_directory=True)
             except OSError:
                 self.skipTest("El entorno no permite crear enlaces simbólicos.")
-            with self.assertRaises(ValueError):
-                scan_duplicates([link])
+            result = scan_duplicates([link])
+            self.assertEqual(result["files_scanned"], 0)
+            self.assertTrue(result["errors"])
 
     def test_invalid_category_is_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
