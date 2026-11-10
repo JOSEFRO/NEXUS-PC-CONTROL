@@ -4,7 +4,8 @@ from urllib.parse import urlsplit
 from flask import Flask, abort, jsonify, render_template, request
 from .scanner import get_overview, scan_system, scan_large_files, storage_categories, browse_storage_category, delete_storage_files, MIB, GIB
 from .cleaner import get_cleanup_candidates, clean_selected
-from .scan_jobs import scan_jobs\nfrom .preferences import get_settings, update_settings
+from .scan_jobs import scan_jobs
+from .preferences import get_settings, update_settings
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024
