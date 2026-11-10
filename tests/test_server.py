@@ -126,6 +126,42 @@ class LocalDashboardTests(unittest.TestCase):
             self.assertEqual(result["deleted"], 1)
             self.assertFalse(target.exists())
 
+
+    def test_settings_api_returns_defaults_and_accepts_safe_patch(self):
+        from unittest.mock import patch
+        from app import preferences
+        with patch.object(preferences, "settings_path") as path:
+            import tempfile
+            from pathlib import Path
+            with tempfile.TemporaryDirectory() as directory:
+                path.return_value = Path(directory) / "settings.json"
+                response = self.client.get("/api/settings")
+                self.assertEqual(response.status_code, 200)
+                updated = self.client.put("/api/settings", json={
+                    "appearance": {"theme": "light"},
+                    "modules": {"duplicates": False},
+                    "unknown": {"unsafe": True},
+                })
+                self.assertEqual(updated.status_code, 200)
+                self.assertEqual(updated.get_json()["appearance"]["theme"], "light")
+                self.assertFalse(updated.get_json()["modules"]["duplicates"])
+                self.assertNotIn("unknown", updated.get_json())
+
+    def test_duplicate_scan_rejects_protected_or_unknown_category(self):
+        response = self.client.post("/api/storage/duplicates", json={"category": "appdata_local"})
+        self.assertEqual(response.status_code, 400)
+
+    def test_duplicate_scan_starts_background_job(self):
+        from unittest.mock import patch
+        with patch("app.server.storage_categories", return_value=[
+            {"id": "downloads", "name": "Descargas", "path": "/tmp", "deletable": True}
+        ]):
+            response = self.client.post("/api/storage/duplicates", json={
+                "category": "downloads", "file_category": "images"
+            })
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(response.get_json()["kind"], "duplicates")
+
     def test_unknown_background_scan_returns_404(self):
         response = self.client.get("/api/storage/scans/not-a-real-job")
         self.assertEqual(response.status_code, 404)
