@@ -8,6 +8,8 @@ import string
 import time
 from pathlib import Path
 
+from send2trash import send2trash
+
 GIB = 1024 ** 3
 MIB = 1024 ** 2
 
@@ -481,7 +483,7 @@ def browse_storage_category(category_id, relative_path=""):
 
 
 def delete_storage_files(category_id, relative_paths):
-    """Delete only explicitly selected regular files in user-owned folders."""
+    """Move explicitly selected regular files to the OS trash, never unlink them."""
     if not isinstance(category_id, str):
         raise ValueError("Categoría no válida.")
     categories = {item["id"]: item for item in storage_categories()}
@@ -502,12 +504,21 @@ def delete_storage_files(category_id, relative_paths):
                 results.append({"path": raw, "status": "rejected"})
                 continue
             size = info.st_size
-            # Unlink the validated path itself, not its resolved target.
-            target.unlink()
-            results.append({"path": raw, "status": "deleted", "bytes_freed": size})
+            # Revalidate immediately before handing the exact selected path to the OS trash.
+            current_target, current_info = _storage_path_without_links(root, raw)
+            if current_target != target or not stat.S_ISREG(current_info.st_mode):
+                results.append({"path": raw, "status": "rejected"})
+                continue
+            send2trash(str(target))
+            results.append({"path": raw, "status": "trashed", "bytes_trashed": size})
         except ValueError:
             results.append({"path": raw, "status": "rejected"})
         except OSError as exc:
             results.append({"path": raw, "status": "error", "error": str(exc)})
-    return {"results": results, "deleted": sum(x["status"] == "deleted" for x in results),
-            "bytes_freed": sum(x.get("bytes_freed", 0) for x in results)}
+    trashed = sum(x["status"] == "trashed" for x in results)
+    return {
+        "results": results,
+        "trashed": trashed,
+        "bytes_trashed": sum(x.get("bytes_trashed", 0) for x in results),
+        "message": "Los archivos enviados a la papelera siguen ocupando espacio hasta vaciarla.",
+    }
