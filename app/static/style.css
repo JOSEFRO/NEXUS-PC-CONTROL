@@ -216,3 +216,24 @@ button.primary{background:linear-gradient(100deg,#8b50d5,#c09aff);color:#10091a}
 .large-results-summary{padding:10px 0;border-bottom:1px solid #b88aff22;font-size:11px}
 .visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 @media(max-width:700px){.scan-controls{display:grid;grid-template-columns:1fr 1fr;width:100%}.scan-controls input[type="search"]{grid-column:1/-1}.scan-controls select{grid-column:1/-1;width:100%}}
+
+/* Live resource visualizations */
+.storage-visual{grid-column:1/-1;min-width:0;padding:18px;border:1px solid #b88aff25;background:linear-gradient(145deg,#171126,#0d101c)}
+.visual-kicker{margin:0 0 14px;color:#a997c9;font:10px ui-monospace,monospace;letter-spacing:1.6px}
+.storage-visual-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.storage-visual-card{display:flex;align-items:center;gap:14px;min-width:0;padding:14px;border:1px solid #b88aff25;background:#0c101b}
+.storage-ring{width:76px;height:76px;flex:none;display:grid;place-items:center;border-radius:50%;position:relative;box-shadow:0 0 24px #b58aff20}
+.storage-ring:before{content:"";position:absolute;inset:8px;border-radius:50%;background:#11101b}
+.storage-ring span{position:relative;z-index:1;color:#f2eaff;font:700 15px ui-monospace,monospace}
+.storage-visual-detail{min-width:0;display:grid;gap:5px}
+.storage-visual-detail b{color:#f2eaff;font-size:14px}
+.storage-visual-detail small{color:#9b91ad;font-size:11px}
+.health-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}
+.health-metric{padding:16px;border:1px solid #b88aff25;background:#0c101b}
+.health-metric>div:first-child{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.health-metric span{color:#9b91ad;font:10px ui-monospace,monospace;letter-spacing:1.2px}
+.health-metric strong{color:#e7d7ff;font:700 18px ui-monospace,monospace}
+.health-track{height:9px;margin-top:14px;overflow:hidden;background:#28213a;border-radius:2px}
+.health-track i{display:block;width:0;height:100%;background:linear-gradient(90deg,#8750d0,#c9a5ff);box-shadow:0 0 16px #b58aff55;transition:width .35s ease}
+@media(max-width:600px){.storage-visual{padding:13px}.storage-visual-grid{grid-template-columns:1fr}.health-metrics{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.health-track i{transition:none}}
