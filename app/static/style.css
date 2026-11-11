@@ -81,3 +81,99 @@ button:disabled{opacity:.55;cursor:wait}
 .job-cancel{border-color:#78414a;color:#ffabb1;background:#321b27}
 .job-cancel[hidden]{display:none}
 @media(max-width:800px){.job-panel{grid-template-columns:1fr}.job-cancel{width:100%}}
+
+
+/* BRIFAN-inspired NEXUS visual layer: keep the original NEXUS/JOSEFRO mark. */
+:root{--bg:#050a14;--panel:#0d1727;--panel2:#14243a;--line:#263a55;--text:#f4f7ff;--muted:#9aaac0;--cyan:#58c8ff;--blue:#2878c7;--red:#ff2348;--accent:var(--red);--accent-soft:#ff23482b;--glow-blue:#174a86;}
+body{background:radial-gradient(ellipse at 76% -8%,#174a864d 0,transparent 36%),radial-gradient(ellipse at 12% 42%,#ff234812 0,transparent 32%),linear-gradient(145deg,#050a14,#080f1d 58%,#090d18);}
+.sidebar{background:linear-gradient(180deg,#081222f5,#050a14f8);border-right-color:#25405f;box-shadow:18px 0 55px #0006;backdrop-filter:blur(18px)}
+.brand{position:relative;padding:12px 10px;margin-left:0;border:1px solid #ffffff12;border-radius:16px;background:linear-gradient(135deg,#14253b99,#0b1424aa);box-shadow:inset 0 1px #ffffff12,0 12px 32px #0004;}
+.brand:after{content:'';position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:linear-gradient(120deg,#ff234866,transparent 45%,#2878c788);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.josefro-app-mark{filter:drop-shadow(0 0 9px #2878c788) drop-shadow(0 0 18px #ff234833);}
+.brand b{letter-spacing:4px;text-shadow:0 0 22px #58c8ff44}.brand small i{color:#ff657d}
+.eyebrow{color:#ff647d;text-shadow:0 0 18px #ff234844}
+nav a{border-radius:12px;background:transparent;transition:transform .25s ease,background .25s ease,box-shadow .25s ease}
+nav a.active,nav a:hover{color:#f4f7ff;border-color:#ff234833;background:linear-gradient(100deg,#ff23481c,#174a8638);box-shadow:inset 3px 0 #ff2348,0 8px 25px #0003}
+.side-note{color:#ff657d;background:linear-gradient(135deg,#ff23480d,#174a8612);border-color:#ff23482b;box-shadow:inset 0 1px #ffffff0b}
+.local-pulse{background:#58c8ff;box-shadow:0 0 8px #58c8ff,0 0 18px #58c8ff88}
+header{position:relative;isolation:isolate}header:after{content:'';position:absolute;z-index:-1;right:5%;top:-32px;width:220px;height:160px;border:1px solid #58c8ff22;border-radius:50%;transform:rotate(-24deg);box-shadow:0 0 0 22px #174a8610,0 0 0 48px #ff234808, inset 0 0 45px #174a8622;pointer-events:none;animation:nexus-orbit 12s linear infinite}
+header:before{content:'';position:absolute;z-index:-1;right:12%;top:14px;width:9px;height:9px;border-radius:50%;background:#ff536e;box-shadow:0 0 18px #ff2348,0 0 40px #ff234877;animation:nexus-pulse 3.4s ease-in-out infinite}
+.primary{background:linear-gradient(110deg,#ff2348,#d51e54 52%,#174a86)!important;color:#fff!important;border:1px solid #ff7187!important;box-shadow:0 10px 28px #ff23482b,inset 0 1px #ffffff44;transition:transform .25s,box-shadow .25s}
+.primary:hover{transform:translateY(-3px);box-shadow:0 16px 34px #ff234844,inset 0 1px #ffffff55}
+button:hover{border-color:#58c8ff;box-shadow:0 0 0 3px #58c8ff12}
+.stat,.panel{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(145deg,#13243aee,#0a1423f5 70%);border-color:#29415f;box-shadow:0 22px 55px #0005,inset 0 1px #ffffff0c;transform-style:preserve-3d;}
+.stat:before,.panel:before{content:'';position:absolute;z-index:-1;inset:0;background:radial-gradient(circle at 92% 0%,#174a8638,transparent 42%),linear-gradient(125deg,#ffffff08,transparent 35%);pointer-events:none}
+.stat:after{border-color:#ff23482a;box-shadow:0 0 0 18px #174a8610,0 0 0 36px #ff234808,0 0 38px #174a8622}
+.stat:hover,.panel:hover{border-color:#58c8ff55;box-shadow:0 26px 65px #0006,0 0 35px #174a8622,inset 0 1px #ffffff12}
+.bar i,.drive-meter i{background:linear-gradient(90deg,#ff2348,#ff6a7f 42%,#2878c7);box-shadow:0 0 16px #ff234866}
+.size,.drive-percent{color:#ff7187}
+.folder,.checkrow,.drive-row,.job-panel{background:linear-gradient(120deg,#0a1626,#0c1b2e);border-color:#263d5a;box-shadow:inset 0 1px #ffffff08}
+.folder:hover,.checkrow:hover,.drive-row:hover{border-color:#58c8ff66;background:linear-gradient(120deg,#10243a,#142039);transform:translateY(-1px)}
+.job-status{color:#58c8ff}.job-panel progress{accent-color:#ff2348}
+.danger{background:linear-gradient(110deg,#451a2a,#251827);border-color:#ff234866;color:#ff9baa}
+.danger:hover{box-shadow:0 0 22px #ff234822}
+.josefro-footer-logo{filter:drop-shadow(0 0 14px #174a8677)}
+@keyframes nexus-orbit{0%{transform:rotate(-24deg) translateY(0)}50%{transform:rotate(156deg) translateY(5px)}100%{transform:rotate(336deg) translateY(0)}}
+@keyframes nexus-pulse{0%,100%{opacity:.55;transform:scale(.8)}50%{opacity:1;transform:scale(1.25)}}
+@media(max-width:800px){header:before,header:after{display:none}.brand{max-width:360px}}
+@media(prefers-reduced-motion:reduce){header:before,header:after{animation:none!important}.stat,.panel,.folder,.checkrow{transition:none!important;transform:none!important}}
+
+
+/* Storage category explorer */
+.category-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:18px 0}
+.category-card{min-height:76px;text-align:left;padding:16px;border:1px solid #29415f;border-radius:15px;color:var(--text);background:linear-gradient(145deg,#142943,#0a1423);box-shadow:0 12px 28px #0004,inset 0 1px #ffffff10;cursor:pointer;transition:transform .22s,border-color .22s,box-shadow .22s}
+.category-card:hover{transform:translateY(-3px);border-color:#58c8ff99;box-shadow:0 16px 34px #174a8644}
+.storage-explorer{margin-top:18px;padding:18px;border:1px solid #315071;border-radius:18px;background:linear-gradient(145deg,#0c1a2b,#08111e);box-shadow:0 20px 48px #0005}
+.explorer-heading,.explorer-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.explorer-heading h3{margin:0;overflow-wrap:anywhere}
+.explorer-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px;border-bottom:1px solid #263d5a}
+.explorer-entry{display:flex;min-width:0;flex-direction:column;gap:5px;overflow-wrap:anywhere}
+.explorer-entry small{color:var(--muted)}
+.explorer-row input{width:18px;height:18px;accent-color:#ff2348}
+.explorer-controls{margin:16px 0 0}
+.storage-explorer[hidden]{display:none}
+@media(max-width:600px){.explorer-row{gap:8px;padding:10px}.storage-explorer{padding:12px}}
+
+
+/* NEXUS PC CONTROL — premium violet diagnostic console */
+:root{color-scheme:dark;--bg:#08060f;--panel:#110d1b;--panel2:#1b1428;--line:#35254b;--text:#f5f0ff;--muted:#a99abf;--cyan:#c39aff;--blue:#8b5cf6;--red:#ff718d}
+::selection{background:#a66cff;color:#fff}
+body{background:radial-gradient(ellipse at 75% 0%,#281342 0,transparent 38%),radial-gradient(ellipse at 8% 90%,#21103a 0,transparent 34%),var(--bg)}
+.sidebar{background:linear-gradient(180deg,#100b1b 0%,#090711 100%);border-color:#2d2140;box-shadow:16px 0 55px #0005}
+.brand .josefro-app-mark{filter:drop-shadow(0 0 12px #a66cff66)}
+.brand b{letter-spacing:4px}.brand small i{color:#c49bff;font-style:normal}
+nav a{border-radius:10px}
+nav a.active{color:#e7d7ff;border-color:#a66cff44;background:linear-gradient(100deg,#44207866,#1d142b);box-shadow:inset 3px 0 #b98aff,0 8px 24px #0003}
+nav a:hover{background:#251638;color:#e7d7ff}
+.side-note{border:1px solid #a66cff28;background:#a66cff0c;color:#c8a7ff;border-radius:12px}
+.local-pulse{background:#c49bff;box-shadow:0 0 13px #c49bff}
+main{max-width:1500px}
+header{padding:24px 0 30px;border-bottom:1px solid #ffffff12}
+.eyebrow{color:#c49bff}
+h1{letter-spacing:-2px;line-height:1.05}
+.stat,.panel{background:linear-gradient(145deg,#171025,#0e0a17 78%);border-color:#35254b;box-shadow:0 18px 48px #0003}
+.stat{position:relative;overflow:hidden;transition:transform .25s,border-color .25s,box-shadow .25s}
+.stat:after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 100% 0%,#9c61e91c,transparent 52%)}
+.stat:hover{transform:translateY(-3px);border-color:#9863d5;box-shadow:0 22px 55px #0005,0 0 28px #9b5de51a}
+.stat span{color:#b4a4cb}.stat strong{letter-spacing:-1.5px}
+.bar{background:#2b203b}.bar i{background:linear-gradient(90deg,#793bd0,#c39aff,#f0c9ff);box-shadow:0 0 18px #a66cff55}
+button{border-color:#49335f;background:linear-gradient(145deg,#211630,#171020);transition:transform .2s,border-color .2s,box-shadow .2s}
+button:hover{border-color:#bd8cff;box-shadow:0 0 18px #a66cff20;transform:translateY(-1px)}
+button.primary{color:#fff;background:linear-gradient(110deg,#7136c5,#a66cff);box-shadow:0 9px 28px #8b5cf633}
+button.primary:hover{box-shadow:0 12px 35px #9b5de55c}
+.panel{border-radius:18px;padding:clamp(18px,2.2vw,28px)}
+.section-head{margin-bottom:18px}
+.section-head h2{letter-spacing:-.8px}
+.folder,.checkrow{background:#0d0915;border-color:#30213f;border-radius:12px;transition:border-color .2s,background .2s}
+.folder:hover,.checkrow:hover{border-color:#8e5ac8;background:#171023}
+.size{color:#d1adff}
+.notice{color:#f0d5ff;background:#291a3b;border-color:#5c397d}
+.danger{border-color:#824055;color:#ff9bad;background:#29101d}
+input,select,textarea{accent-color:#b78aff}
+input[type=number]{border:1px solid #49335f;border-radius:9px;background:#0d0915;color:#f5f0ff;padding:9px}
+footer{display:flex;align-items:center;gap:14px;border-top:1px solid #ffffff12;margin-top:32px}
+.josefro-footer-logo{max-width:112px;max-height:32px;object-fit:contain}
+.skip-link:focus{background:#c39aff;color:#160d24}
+@media(max-width:800px){.sidebar{border-bottom:1px solid #35254b}.sidebar nav{gap:5px}.sidebar nav a{border:1px solid #ffffff0b}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.stats{grid-template-columns:1fr}.section-head{gap:12px}.scan-controls{display:flex;flex-wrap:wrap;gap:8px}}
+@media(prefers-reduced-motion:reduce){.stat,.folder,button{transition:none}.stat:hover,button:hover{transform:none}}

@@ -243,6 +243,7 @@
       ]);
       renderDrives(overview.drives);
       renderCleanup(cleanup.items);
+      await loadStorageCategories();
       await runBackgroundScan("profile", {}, "profileJob", (scan) => renderFolders(scan.folders, scan.coverage));
       await loadHealth();
     } catch (error) {
@@ -293,6 +294,122 @@
       setText("cleanResult", "No se pudo completar: " + error.message);
     } finally {
       if (button) button.disabled = false;
+    }
+  }
+
+
+  let activeStorageCategory = null;
+  let activeStoragePath = "";
+  const selectedStorageFiles = new Set();
+  let storageNavigationRequest = 0;
+
+  async function loadStorageCategories() {
+    const data = await getJSON("/api/storage/categories");
+    const container = $("storageCategories");
+    if (!container) return;
+    container.replaceChildren();
+    data.categories.forEach((category) => {
+      const button = make("button", "category-card", category.name);
+      button.type = "button";
+      button.addEventListener("click", () => openStorageFolder(category.id, ""));
+      container.append(button);
+    });
+  }
+
+  async function openStorageFolder(categoryId, relativePath) {
+    const explorer = $("storageExplorer");
+    if (!explorer) return;
+    if (activeStorageCategory !== categoryId || activeStoragePath !== (relativePath || "")) selectedStorageFiles.clear();
+    activeStorageCategory = categoryId;
+    activeStoragePath = relativePath || "";
+    const requestId = ++storageNavigationRequest;
+    explorer.hidden = false;
+    showMessage(explorer, "Leyendo contenido de la carpeta…");
+    try {
+      const data = await getJSON("/api/storage/browse/" + encodeURIComponent(categoryId) +
+        "?path=" + encodeURIComponent(activeStoragePath));
+      if (requestId !== storageNavigationRequest) return;
+      explorer.replaceChildren();
+      const heading = make("div", "explorer-heading");
+      const title = make("h3", "", data.category.name + (data.relative_path ? " / " + data.relative_path : ""));
+      const back = make("button", "", "← Volver");
+      back.type = "button";
+      back.disabled = !data.parent_path && !data.relative_path;
+      back.addEventListener("click", () => openStorageFolder(categoryId, data.parent_path || ""));
+      heading.append(title, back);
+      explorer.append(heading);
+      const rows = make("div", "folder-list");
+      const selected = [];
+      data.entries.forEach((entry) => {
+        const row = make("div", "explorer-row");
+        const details = make("div", "explorer-entry");
+        const label = entry.is_dir ? "📁 " + entry.name : "📄 " + entry.name;
+        details.append(make("b", "", label));
+        details.append(make("small", "", entry.is_dir ? "Carpeta" : (Number(entry.size_bytes).toLocaleString("es-DO") + " bytes · " + (entry.size_bytes / 1073741824).toFixed(3) + " GB")));
+        if (entry.is_dir) {
+          const open = make("button", "", "Abrir");
+          open.type = "button";
+          open.addEventListener("click", () => openStorageFolder(categoryId, entry.relative_path));
+          row.append(details, open);
+        } else {
+          const check = document.createElement("input");
+          check.type = "checkbox";
+          check.setAttribute("aria-label", "Seleccionar " + entry.name);
+          check.addEventListener("change", () => {
+            if (check.checked) selectedStorageFiles.add(entry.relative_path);
+            else selectedStorageFiles.delete(entry.relative_path);
+            updateDeleteSelection();
+          });
+          row.append(check, details);
+        }
+        rows.append(row);
+      });
+      if (!data.entries.length) showMessage(rows, "Esta carpeta está vacía.");
+      explorer.append(rows);
+      const controls = make("div", "explorer-controls");
+      const count = make("span", "muted", "Seleccionados: 0");
+      count.id = "selectedStorageCount";
+      const remove = make("button", "danger", "Eliminar seleccionados");
+      remove.type = "button";
+      remove.disabled = !data.category.deletable;
+      remove.title = data.category.deletable ? "Eliminar los archivos seleccionados" : "Categoría protegida: solo lectura";
+      remove.addEventListener("click", deleteStorageSelection);
+      controls.append(count, remove);
+      explorer.append(controls);
+      explorer.dataset.deletable = String(data.category.deletable);
+      explorer.dataset.category = categoryId;
+      updateDeleteSelection();
+    } catch (error) {
+      if (requestId === storageNavigationRequest) showMessage(explorer, error.message, "error-message");
+    }
+  }
+
+  function updateDeleteSelection() {
+    const count = $("selectedStorageCount");
+    if (count) count.textContent = "Seleccionados: " + selectedStorageFiles.size;
+    const explorer = $("storageExplorer");
+    const remove = explorer && explorer.querySelector(".explorer-controls .danger");
+    if (remove) remove.disabled = !selectedStorageFiles.size || explorer.dataset.deletable !== "true";
+  }
+
+  async function deleteStorageSelection() {
+    if (!selectedStorageFiles.size || !activeStorageCategory) return;
+    const paths = [...selectedStorageFiles];
+    const confirmed = window.confirm("Se eliminarán " + paths.length +
+      " archivo(s) seleccionados. Esta acción no se puede deshacer desde NEXUS. ¿Confirmas?");
+    if (!confirmed) return;
+    try {
+      const result = await getJSON("/api/storage/delete", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category: activeStorageCategory, paths })
+      });
+      selectedStorageFiles.clear();
+      const trashed = (Number(result.bytes_trashed || 0) / 1073741824).toFixed(3);
+      window.alert("Enviados a la papelera: " + result.trashed + " · Tamaño enviado: " + trashed + " GB. Vacía la papelera para liberar espacio.");
+      await openStorageFolder(activeStorageCategory, activeStoragePath);
+      await loadOverview();
+    } catch (error) {
+      window.alert("No se pudo completar la eliminación: " + error.message);
     }
   }
 

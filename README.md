@@ -34,6 +34,11 @@ NEXUS PC CONTROL es una aplicación local para Windows. Abre un panel web en tu 
 - Informe de cobertura, carpetas excluidas, errores y enlaces simbólicos omitidos.
 - Resultados ordenados por tamaño.
 
+### Explorador de almacenamiento y papelera segura
+- Los archivos seleccionados desde las ubicaciones admitidas se envían a la papelera del sistema mediante `Send2Trash`, en lugar de eliminarse permanentemente.
+- La interfaz informa cuántos archivos se enviaron a la papelera; no afirma que el espacio se haya liberado hasta que el usuario vacíe la papelera.
+- La operación vuelve a validar la ubicación y el tipo de archivo antes de enviarlo a la papelera.
+
 ### Mantenimiento selectivo
 - Presenta ubicaciones temporales admitidas por la aplicación.
 - Requiere selección y confirmación manual.
@@ -83,11 +88,16 @@ Consulta la [especificación técnica y hoja de ruta](docs/STORAGE-INTELLIGENCE-
 
 **Importante:** los tamaños de archivos representan tamaño lógico, no necesariamente espacio físico asignado en NTFS. Los análisis del perfil no equivalen a un inventario completo de todo el disco.
 
+## Actualización visual 2026
+
+La rama `feat/nexus-safe-trash` incorpora una dirección visual oscura con acentos violeta en navegación, tarjetas, indicadores, formularios y paneles. La interfaz sigue siendo una aplicación local de Windows; no se convierte en un servicio web público.
+
 ## Validación y estado
 
-- CI de GitHub Actions: pruebas en Ubuntu y Windows.
-- P0/P1: 17 pruebas automatizadas aprobadas en ambos runners para el commit de Storage Intelligence 2.0.
+- CI de GitHub Actions: pruebas en Ubuntu y Windows. En la última ejecución de esta rama, Ubuntu pasó y Windows detectó una aserción de prueba demasiado estricta por diferencias entre rutas largas y alias 8.3 de Windows. La prueba se ajustó para comparar identidad del archivo; la nueva ejecución queda pendiente de resultado.
+- La suite actual contiene 32 pruebas automatizadas. Ubuntu aprobó las 32 en la última ejecución; la validación equivalente en Windows está en curso tras ajustar una aserción que fallaba por alias de rutas 8.3 del runner.
 - La CI usa máquinas virtuales. Aún se recomienda validar en equipos físicos Windows 10/11, unidades NTFS secundarias/removibles, perfiles redirigidos y carpetas con permisos restringidos.
+- El rediseño visual y el cambio de papelera están en una propuesta de integración; no se consideran publicados hasta completar CI y revisión en un equipo Windows real.
 - La versión 2.0 sigue en desarrollo. Las fases de árbol de carpetas, categorías, mapa visual, duplicados y reportes están en la hoja de ruta.
 
 ## Tecnologías

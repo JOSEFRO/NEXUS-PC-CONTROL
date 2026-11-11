@@ -2,9 +2,10 @@ import platform
 from urllib.parse import urlsplit
 
 from flask import Flask, abort, jsonify, render_template, request
-from .scanner import get_overview, scan_system, scan_large_files, MIB, GIB
+from .scanner import get_overview, scan_system, scan_large_files, storage_categories, browse_storage_category, delete_storage_files, MIB, GIB
 from .cleaner import get_cleanup_candidates, clean_selected
 from .scan_jobs import scan_jobs
+from .preferences import get_settings, update_settings
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024
@@ -125,6 +126,80 @@ def cancel_storage_scan(scan_id):
         return jsonify({"error": "No se encontró ese análisis o ya expiró."}), 404
     return jsonify(job), 202
 
+
+
+
+@app.get("/api/storage/categories")
+def storage_category_list():
+    return jsonify({"categories": storage_categories()})
+
+
+@app.get("/api/storage/browse/<category_id>")
+def storage_browse(category_id):
+    relative_path = request.args.get("path", "")
+    if len(relative_path) > 2048:
+        return jsonify({"error": "La ruta es demasiado larga."}), 400
+    try:
+        return jsonify(browse_storage_category(category_id, relative_path))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+
+@app.post("/api/storage/delete")
+def storage_delete():
+    payload = request.get_json(silent=True) or {}
+    if not isinstance(payload, dict):
+        return jsonify({"error": "Solicitud inválida."}), 400
+    category_id = payload.get("category")
+    paths = payload.get("paths")
+    try:
+        result = delete_storage_files(category_id, paths)
+        return jsonify(result)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+
+@app.get("/api/settings")
+def settings_get():
+    return jsonify(get_settings())
+
+
+@app.put("/api/settings")
+def settings_put():
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return jsonify({"error": "La configuración debe ser un objeto JSON."}), 400
+    try:
+        return jsonify(update_settings(payload))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+
+@app.post("/api/storage/duplicates")
+def start_duplicate_scan():
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return jsonify({"error": "Solicitud inválida."}), 400
+    category_id = payload.get("category", "downloads")
+    allowed = {item["id"]: item for item in storage_categories() if item["deletable"]}
+    category = allowed.get(category_id)
+    if not category:
+        return jsonify({"error": "Selecciona una carpeta personal admitida para analizar."}), 400
+    kind = payload.get("file_category", "all")
+    if kind not in {"all", "images", "documents", "videos", "audio"}:
+        return jsonify({"error": "Tipo de archivo no válido."}), 400
+    try:
+        min_size = int(payload.get("min_size_bytes", 1))
+    except (TypeError, ValueError):
+        return jsonify({"error": "El tamaño mínimo debe ser un entero."}), 400
+    if min_size < 1 or min_size > 1024 ** 4:
+        return jsonify({"error": "El tamaño mínimo está fuera del rango permitido."}), 400
+    try:
+        return jsonify(scan_jobs.start("duplicates", {
+            "root": category["path"], "file_category": kind, "min_size_bytes": min_size
+        })), 202
+    except RuntimeError as exc:
+        return jsonify({"error": str(exc)}), 429
 
 @app.get("/api/cleanup")
 def cleanup_candidates():
