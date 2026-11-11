@@ -105,7 +105,7 @@ class LocalDashboardTests(unittest.TestCase):
                 {"id": "downloads", "name": "Descargas", "path": str(root), "deletable": True}
             ]):
                 result = scanner.delete_storage_files("downloads", ["shortcut/keep.txt"])
-            self.assertEqual(result["deleted"], 0)
+            self.assertEqual(result["trashed"], 0)
             self.assertTrue(protected.exists())
 
     def test_storage_delete_sends_only_regular_file_to_os_trash(self):
