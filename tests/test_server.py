@@ -108,7 +108,7 @@ class LocalDashboardTests(unittest.TestCase):
             self.assertEqual(result["deleted"], 0)
             self.assertTrue(protected.exists())
 
-    def test_storage_delete_removes_only_regular_file(self):
+    def test_storage_delete_sends_only_regular_file_to_os_trash(self):
         import tempfile
         from pathlib import Path
         from unittest.mock import patch
@@ -121,10 +121,12 @@ class LocalDashboardTests(unittest.TestCase):
             target.write_text("nexus")
             with patch.object(scanner, "storage_categories", return_value=[
                 {"id": "downloads", "name": "Descargas", "path": str(root), "deletable": True}
-            ]):
+            ]), patch.object(scanner, "send2trash") as trash:
                 result = scanner.delete_storage_files("downloads", ["sample.txt"])
-            self.assertEqual(result["deleted"], 1)
-            self.assertFalse(target.exists())
+            self.assertEqual(result["trashed"], 1)
+            self.assertEqual(result["bytes_trashed"], 5)
+            self.assertTrue(target.exists())
+            trash.assert_called_once_with(str(target))
 
 
     def test_settings_api_returns_defaults_and_accepts_safe_patch(self):
