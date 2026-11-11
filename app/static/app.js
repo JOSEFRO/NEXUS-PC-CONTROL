@@ -4,6 +4,7 @@
   const $ = (id) => document.getElementById(id);
   const state = { scanning: false, largeFiles: false, health: false };
   let largeFileData = [];
+  const LARGE_HISTORY_KEY = "nexus-large-scan-history-v1";
   const number = (value, digits = 2) => Number(value || 0).toFixed(digits);
   const gb = (value) => number(value) + " GB";
 
@@ -117,7 +118,13 @@
       const row = make("article", "folder");
       const details = make("div");
       details.append(make("b", "", item.name), make("small", "", item.path));
-      row.append(details, make("strong", "size", gb(item.size_gb)));
+      const copy = make("button", "copy-path", "Copiar ruta");
+      copy.type = "button";
+      copy.addEventListener("click", async () => {
+        try { await navigator.clipboard.writeText(String(item.path || "")); copy.textContent = "Copiada"; }
+        catch { copy.textContent = "No disponible"; }
+      });
+      row.append(details, make("strong", "size", gb(item.size_gb)), copy);
       list.append(row);
     });
     appendCoverage(list, coverage);
@@ -127,19 +134,47 @@
     const list = $("largeFiles");
     if (!list) return;
     largeFileData = Array.isArray(files) ? files.slice() : [];
+    const exportButton = $("exportLargeCsv");
+    if (exportButton) exportButton.disabled = largeFileData.length === 0;
     list.replaceChildren();
     const query = ($("largeSearch")?.value || "").trim().toLocaleLowerCase("es-DO");
     const sort = $("largeSort")?.value || "size-desc";
+    const extension = $("largeExtension")?.value || "all";
     const visible = largeFileData.filter((item) =>
       String(item.name || "").toLocaleLowerCase("es-DO").includes(query) ||
       String(item.path || "").toLocaleLowerCase("es-DO").includes(query)
-    );
-    visible.sort((a, b) => sort === "name-asc"
-      ? String(a.name || "").localeCompare(String(b.name || ""), "es")
-      : Number(b.size_gb || 0) - Number(a.size_gb || 0));
+    ).filter(item => extension === "all" || String(item.name || "").toLowerCase().endsWith(extension));
+    visible.sort((a, b) => {
+      if (sort === "name-asc") return String(a.name || "").localeCompare(String(b.name || ""), "es");
+      if (sort === "name-desc") return String(b.name || "").localeCompare(String(a.name || ""), "es");
+      if (sort === "size-asc") return Number(a.size_gb || 0) - Number(b.size_gb || 0);
+      return Number(b.size_gb || 0) - Number(a.size_gb || 0);
+    });
     const summary = make("p", "muted large-results-summary",
       "Mostrando " + visible.length.toLocaleString("es-DO") + " de " + largeFileData.length.toLocaleString("es-DO") + " archivos encontrados.");
     list.append(summary);
+    const summaryPanel = $("largeSummary");
+    if (summaryPanel) {
+      summaryPanel.replaceChildren();
+      const totalBytes = visible.reduce((sum, item) => sum + Number(item.size_bytes || Number(item.size_gb || 0) * 1073741824), 0);
+      summaryPanel.append(make("strong", "", visible.length.toLocaleString("es-DO") + " archivos visibles"));
+      summaryPanel.append(make("span", "", (totalBytes / 1073741824).toFixed(2) + " GB en los resultados filtrados"));
+    }
+    const exportJsonButton = $("exportLargeJson");
+    const historyButton = $("saveLargeHistory");
+    if (exportJsonButton) exportJsonButton.disabled = largeFileData.length === 0;
+    if (historyButton) historyButton.disabled = largeFileData.length === 0;
+    const extensionSelect = $("largeExtension");
+    if (extensionSelect) {
+      const selectedExtension = extensionSelect.value || "all";
+      const extensions = [...new Set(largeFileData.map(item => {
+        const match = String(item.name || "").toLowerCase().match(/\.[^.]+$/);
+        return match ? match[0] : "";
+      }).filter(Boolean))].sort();
+      extensionSelect.replaceChildren(new Option("Todos los tipos", "all"));
+      extensions.forEach(ext => extensionSelect.add(new Option(ext, ext)));
+      extensionSelect.value = extensions.includes(selectedExtension) ? selectedExtension : "all";
+    }
     if (visible.length === 0) {
       showMessage(list, query ? "No hay archivos que coincidan con esa búsqueda." : "No se encontraron archivos con ese tamaño mínimo.");
       appendCoverage(list, coverage);
@@ -456,6 +491,68 @@
       window.alert("No se pudo completar la eliminación: " + error.message);
     }
   }
+
+  function exportLargeFilesCsv() {
+    if (!largeFileData.length) return;
+    const columns = ["Nombre", "Ruta", "Tamaño (GB)", "Tamaño (bytes)"];
+    const quote = (value) => '"' + String(value ?? "").replace(/"/g, '""') + '"';
+    const rows = largeFileData.map(item => [item.name, item.path, item.size_gb, item.size_bytes]);
+    const csv = "\uFEFF" + [columns, ...rows].map(row => row.map(quote).join(";")).join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "nexus-archivos-grandes-" + new Date().toISOString().slice(0, 10) + ".csv";
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  $("exportLargeCsv")?.addEventListener("click", exportLargeFilesCsv);
+  function downloadLargeReport(filename, content, mime) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url; link.download = filename; link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportLargeJson() {
+    downloadLargeReport("nexus-archivos-grandes.json",
+      JSON.stringify({ exportedAt: new Date().toISOString(), count: largeFileData.length, files: largeFileData }, null, 2),
+      "application/json");
+  }
+
+  function saveLargeHistory() {
+    try {
+      const history = JSON.parse(localStorage.getItem(LARGE_HISTORY_KEY) || "[]");
+      const totalBytes = largeFileData.reduce((sum, item) => sum + Number(item.size_bytes || 0), 0);
+      history.unshift({ date: new Date().toISOString(), count: largeFileData.length, totalBytes });
+      localStorage.setItem(LARGE_HISTORY_KEY, JSON.stringify(history.slice(0, 10)));
+      renderLargeHistory();
+    } catch { showMessage($("largeHistory"), "No se pudo guardar el historial en este navegador."); }
+  }
+
+  function renderLargeHistory() {
+    const container = $("largeHistory");
+    if (!container) return;
+    container.replaceChildren();
+    try {
+      const history = JSON.parse(localStorage.getItem(LARGE_HISTORY_KEY) || "[]");
+      if (!history.length) return;
+      container.append(make("p", "visual-kicker", "HISTORIAL LOCAL DE ANÁLISIS"));
+      history.forEach(item => {
+        const gbTotal = (Number(item.totalBytes || 0) / 1073741824).toFixed(2);
+        container.append(make("p", "muted", new Date(item.date).toLocaleString("es-DO") + " · " + item.count + " archivos · " + gbTotal + " GB"));
+      });
+    } catch { showMessage(container, "No se pudo leer el historial."); }
+  }
+
+  $("exportLargeJson")?.addEventListener("click", exportLargeJson);
+  $("saveLargeHistory")?.addEventListener("click", saveLargeHistory);
+  $("largeExtension")?.addEventListener("change", refreshLargeFileResults);
+  renderLargeHistory();
 
   $("largeSearch")?.addEventListener("input", refreshLargeFileResults);
   $("largeSort")?.addEventListener("change", refreshLargeFileResults);

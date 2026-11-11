@@ -237,3 +237,5 @@ button.primary{background:linear-gradient(100deg,#8b50d5,#c09aff);color:#10091a}
 .health-track i{display:block;width:0;height:100%;background:linear-gradient(90deg,#8750d0,#c9a5ff);box-shadow:0 0 16px #b58aff55;transition:width .35s ease}
 @media(max-width:600px){.storage-visual{padding:13px}.storage-visual-grid{grid-template-columns:1fr}.health-metrics{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.health-track i{transition:none}}
+
+.storage-summary{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0;padding:12px;border:1px solid var(--line,rgba(255,255,255,.12));border-radius:10px}.history-list{margin:10px 0;padding:10px 0;border-top:1px solid var(--line,rgba(255,255,255,.12))}.large-file-actions{display:flex;gap:8px}.copy-path{border:1px solid var(--line,rgba(255,255,255,.15));border-radius:7px;padding:6px 10px;background:transparent;color:inherit;cursor:pointer}@media(max-width:700px){.storage-summary,.large-file-actions{display:grid;grid-template-columns:1fr}.scan-controls{flex-wrap:wrap}}
