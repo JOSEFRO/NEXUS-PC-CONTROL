@@ -70,6 +70,26 @@
     setText("diskFree", gb(primary.free_gb) + " libres de " + gb(primary.total_gb));
     if ($("diskBar")) $("diskBar").style.width = Math.max(0, Math.min(100, Number(primary.used_percent) || 0)) + "%";
 
+    const visual = $("storageVisual");
+    if (visual) {
+      visual.replaceChildren();
+      visual.append(make("p", "visual-kicker", "MAPA DE CAPACIDAD · DATOS DEL SISTEMA"));
+      const cards = make("div", "storage-visual-grid");
+      drives.forEach((drive) => {
+        const percent = Math.max(0, Math.min(100, Number(drive.used_percent) || 0));
+        const card = make("article", "storage-visual-card");
+        const ring = make("div", "storage-ring");
+        ring.style.background = "conic-gradient(var(--cyan) 0 " + percent + "%,#26364b " + percent + "% 100%)";
+        ring.append(make("span", "", number(percent, 0) + "%"));
+        const detail = make("div", "storage-visual-detail");
+        detail.append(make("b", "", drive.drive || "Unidad"));
+        detail.append(make("small", "", gb(drive.used_gb) + " usados"));
+        detail.append(make("small", "", gb(drive.free_gb) + " disponibles"));
+        card.append(ring, detail);
+        cards.append(card);
+      });
+      visual.append(cards);
+    }
     drives.forEach((drive) => {
       const row = make("article", "drive-row");
       const info = make("div", "drive-info");
@@ -170,9 +190,15 @@
     state.health = true;
     try {
       const health = await getJSON("/api/health");
-      setText("cpu", number(health.cpu_percent, 1) + "%");
-      setText("ram", number(health.ram_percent, 1) + "%");
+      const cpuPercent = Math.max(0, Math.min(100, Number(health.cpu_percent) || 0));
+      const ramPercent = Math.max(0, Math.min(100, Number(health.ram_percent) || 0));
+      setText("cpu", number(cpuPercent, 1) + "%");
+      setText("ram", number(ramPercent, 1) + "%");
       setText("ramFree", gb(health.ram_available_gb) + " disponibles de " + gb(health.ram_total_gb));
+      setText("cpuVisualValue", number(cpuPercent, 1) + "%");
+      setText("ramVisualValue", number(ramPercent, 1) + "%");
+      if ($("cpuVisualBar")) $("cpuVisualBar").style.width = cpuPercent + "%";
+      if ($("ramVisualBar")) $("ramVisualBar").style.width = ramPercent + "%";
       setText("healthInfo", health.windows + " · Python " + health.python);
     } catch (error) {
       setText("healthInfo", "No se pudo consultar el estado: " + error.message);
