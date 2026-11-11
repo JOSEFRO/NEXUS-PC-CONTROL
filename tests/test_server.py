@@ -128,7 +128,7 @@ class LocalDashboardTests(unittest.TestCase):
             self.assertEqual(result["bytes_trashed"], 5)
             self.assertTrue(target.exists())
             self.assertEqual(trash.call_count, 1)
-            self.assertEqual(os.path.normcase(trash.call_args.args[0]), os.path.normcase(str(target)))
+            self.assertTrue(os.path.samefile(trash.call_args.args[0], target))
 
 
     def test_settings_api_returns_defaults_and_accepts_safe_patch(self):
