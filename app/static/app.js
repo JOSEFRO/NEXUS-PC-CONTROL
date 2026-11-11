@@ -404,8 +404,8 @@
         body: JSON.stringify({ category: activeStorageCategory, paths })
       });
       selectedStorageFiles.clear();
-      const freed = (Number(result.bytes_freed || 0) / 1073741824).toFixed(3);
-      window.alert("Eliminados: " + result.deleted + " · Espacio liberado: " + freed + " GB");
+      const trashed = (Number(result.bytes_trashed || 0) / 1073741824).toFixed(3);
+      window.alert("Enviados a la papelera: " + result.trashed + " · Tamaño enviado: " + trashed + " GB. Vacía la papelera para liberar espacio.");
       await openStorageFolder(activeStorageCategory, activeStoragePath);
       await loadOverview();
     } catch (error) {
