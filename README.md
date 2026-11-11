@@ -4,45 +4,47 @@
 
 # NEXUS PC CONTROL
 
-### Diagnóstico local. Información clara. Decisiones seguras.
+### Comprende tu equipo. Analiza el almacenamiento. Actúa con control.
 
-**Panel de diagnóstico para Windows con análisis de almacenamiento en segundo plano.**
+**Herramienta local para Windows que reúne diagnóstico del sistema y análisis de almacenamiento en una interfaz visual.**
 
-[Repositorio](https://github.com/JOSEFRO/NEXUS-PC-CONTROL) · [Descargar ZIP](https://github.com/JOSEFRO/NEXUS-PC-CONTROL/archive/refs/heads/main.zip) · [Historial de cambios](https://github.com/JOSEFRO/NEXUS-PC-CONTROL/commits/main)
+[📂 Repositorio](https://github.com/JOSEFRO/NEXUS-PC-CONTROL) · [⬇ Descargar ZIP](https://github.com/JOSEFRO/NEXUS-PC-CONTROL/archive/refs/heads/main.zip) · [🧾 Cambios recientes](https://github.com/JOSEFRO/NEXUS-PC-CONTROL/commits/main)
 
-<sub>Versión de desarrollo 2.0 · Proyecto de JOSEFRO</sub>
+<sub>Proyecto de JOSEFRO · Python / Flask</sub>
 
 </div>
 
-## ¿Qué es NEXUS?
+## Qué es NEXUS
 
-NEXUS PC CONTROL es una aplicación local para Windows. Abre un panel web en tu propio equipo para consultar unidades, revisar el almacenamiento y observar recursos del sistema. La interfaz se sirve en `127.0.0.1:8765`; no es una aplicación web alojada para analizar equipos por Internet.
+NEXUS PC CONTROL es una aplicación de escritorio/local para Windows. Inicia un servidor en el propio equipo y muestra el panel en el navegador mediante `127.0.0.1:8765`.
 
-## Funciones disponibles
+**No es un servicio web público ni una herramienta para administrar computadoras por Internet.** Los datos del equipo se consultan localmente.
 
-### Diagnóstico del equipo
-- Detección de unidades montadas y capacidad utilizada/libre.
-- Identificación de la unidad del sistema cuando Windows la informa.
-- Consulta de CPU, memoria RAM y versión del entorno.
+## Funciones principales
 
-### Storage Intelligence 2.0 — P0 y P1
-- Escaneo recursivo de carpetas habituales del perfil, sin el límite fijo anterior de cuatro niveles.
+### Diagnóstico del sistema
+- Consulta de unidades detectadas y capacidad utilizada/disponible.
+- Indicadores visuales de capacidad por unidad.
+- Lecturas de CPU y memoria RAM.
+- Medidores gráficos para facilitar la interpretación de los recursos.
+- Información del entorno de ejecución.
+
+### Análisis de almacenamiento
+- Escaneo de carpetas admitidas del perfil de usuario.
 - Búsqueda de archivos grandes con umbral configurable.
-- Análisis en segundo plano para mantener la interfaz receptiva.
-- Contadores de archivos, carpetas, bytes observados y errores.
-- Cancelación cooperativa y disponibilidad de resultados parciales.
-- Informe de cobertura, carpetas excluidas, errores y enlaces simbólicos omitidos.
+- Ejecución de análisis en segundo plano.
+- Contadores de archivos, carpetas y bytes observados.
+- Cancelación cooperativa y resultados parciales cuando corresponde.
+- Reporte de cobertura, errores, exclusiones y enlaces simbólicos omitidos.
 - Resultados ordenados por tamaño.
 
-### Explorador de almacenamiento y papelera segura
-- Los archivos seleccionados desde las ubicaciones admitidas se envían a la papelera del sistema mediante `Send2Trash`, en lugar de eliminarse permanentemente.
-- La interfaz informa cuántos archivos se enviaron a la papelera; no afirma que el espacio se haya liberado hasta que el usuario vacíe la papelera.
-- La operación vuelve a validar la ubicación y el tipo de archivo antes de enviarlo a la papelera.
+### Explorador y acciones cuidadosas
+- Presenta resultados para que el usuario los revise antes de actuar.
+- Los archivos seleccionados en las ubicaciones admitidas se envían a la papelera del sistema mediante Send2Trash.
+- La interfaz distingue entre enviar a la papelera y liberar espacio: el espacio no se considera recuperado hasta vaciar la papelera.
+- La operación vuelve a validar la ruta y el tipo de archivo antes de enviarlo a la papelera.
 
-### Mantenimiento selectivo
-- Presenta ubicaciones temporales admitidas por la aplicación.
-- Requiere selección y confirmación manual.
-- No convierte el análisis de almacenamiento en una orden de borrado.
+Las acciones de limpieza disponibles requieren selección y confirmación. El análisis no borra archivos.
 
 ## Inicio rápido en Windows
 
@@ -50,7 +52,7 @@ NEXUS PC CONTROL es una aplicación local para Windows. Abre un panel web en tu 
 
 1. Descarga el ZIP del repositorio y extrae su contenido.
 2. Ejecuta `INICIAR.bat`.
-3. Espera a que se instalen las dependencias y se inicie el servidor.
+3. Espera a que se instalen las dependencias y arranque el servidor.
 4. Abre [http://127.0.0.1:8765](http://127.0.0.1:8765) si el navegador no se abre automáticamente.
 
 También puedes iniciarlo desde PowerShell:
@@ -62,47 +64,49 @@ py -m pip install -r requirements.txt
 py app.py
 ```
 
-## Arquitectura y API de análisis
+## API local de análisis
 
-Los trabajos de análisis se administran en el proceso local de Flask:
-
-| Método | Ruta | Uso |
+| Método | Ruta | Función |
 |---|---|---|
-| POST | `/api/storage/scans` | Inicia un análisis de perfil o de archivos grandes |
-| GET | `/api/storage/scans/{scan_id}` | Consulta estado, contadores y resultados |
-| POST | `/api/storage/scans/{scan_id}/cancel` | Solicita la cancelación |
+| POST | `/api/storage/scans` | Inicia un análisis admitido. |
+| GET | `/api/storage/scans/{scan_id}` | Consulta el estado, contadores y resultados. |
+| POST | `/api/storage/scans/{scan_id}/cancel` | Solicita cancelar el análisis. |
 
-Los estados incluyen `queued`, `running`, `cancelling`, `cancelled`, `completed`, `completed_with_warnings` y `failed`. El progreso es indeterminado cuando no se conoce el total; los contadores reflejan trabajo observado, no porcentajes inventados.
+Los estados del trabajo distinguen entre cola, ejecución, cancelación, finalización, finalización con advertencias y error. Cuando no se conoce el total de elementos, el progreso se presenta como indeterminado en vez de inventar un porcentaje.
 
-Consulta la [especificación técnica y hoja de ruta](docs/STORAGE-INTELLIGENCE-2.0.md).
+Consulta la [especificación de Storage Intelligence](docs/STORAGE-INTELLIGENCE-2.0.md).
 
-## Seguridad y privacidad
+## Privacidad y seguridad
 
-- El servidor escucha exclusivamente en `127.0.0.1`.
-- No se debe publicar ni exponer este servidor en una IP pública, túnel o alojamiento web.
-- Los análisis de almacenamiento son de solo lectura.
+- El servidor local debe permanecer ligado a `127.0.0.1`.
+- No publiques el servidor en una IP pública, túnel o alojamiento web.
+- El escaneo de almacenamiento es de solo lectura.
 - No se siguen enlaces simbólicos durante el recorrido.
-- Los errores y exclusiones se informan para no presentar una cobertura parcial como completa.
-- La aplicación no envía nombres de archivos, rutas ni inventarios de discos a servicios externos.
-- Las acciones de limpieza disponibles son independientes del escaneo y requieren confirmación.
+- Se muestran exclusiones y errores para no confundir cobertura parcial con análisis completo.
+- La aplicación no necesita enviar inventarios de archivos a servicios externos.
+- Las acciones de limpieza están separadas del escaneo y requieren confirmación.
 
-**Importante:** los tamaños de archivos representan tamaño lógico, no necesariamente espacio físico asignado en NTFS. Los análisis del perfil no equivalen a un inventario completo de todo el disco.
+Los tamaños mostrados representan tamaño lógico y no necesariamente espacio físico asignado en NTFS. El análisis del perfil tampoco equivale a un inventario completo del disco.
 
-## Actualización visual 2026
+## Tecnología
 
-La rama `feat/nexus-safe-trash` incorpora una dirección visual oscura con acentos violeta en navegación, tarjetas, indicadores, formularios y paneles. La interfaz sigue siendo una aplicación local de Windows; no se convierte en un servicio web público.
+Python · Flask · psutil · Send2Trash · HTML · CSS · JavaScript · GitHub Actions
 
-## Validación y estado
+## Estado y validación
 
-- CI de GitHub Actions: pruebas en Ubuntu y Windows. En la última ejecución de esta rama, Ubuntu pasó y Windows detectó una aserción de prueba demasiado estricta por diferencias entre rutas largas y alias 8.3 de Windows. La prueba se ajustó para comparar identidad del archivo; la nueva ejecución queda pendiente de resultado.
-- La suite actual contiene 32 pruebas automatizadas. Ubuntu aprobó las 32 en la última ejecución; la validación equivalente en Windows está en curso tras ajustar una aserción que fallaba por alias de rutas 8.3 del runner.
-- La CI usa máquinas virtuales. Aún se recomienda validar en equipos físicos Windows 10/11, unidades NTFS secundarias/removibles, perfiles redirigidos y carpetas con permisos restringidos.
-- El rediseño visual y el cambio de papelera están en una propuesta de integración; no se consideran publicados hasta completar CI y revisión en un equipo Windows real.
-- La versión 2.0 sigue en desarrollo. Las fases de árbol de carpetas, categorías, mapa visual, duplicados y reportes están en la hoja de ruta.
+NEXUS se encuentra en desarrollo activo. La integración actual incluye mejoras de seguridad al enviar archivos a la papelera y visualizaciones de almacenamiento, CPU y RAM.
 
-## Tecnologías
+Las comprobaciones automatizadas recientes de GitHub Actions finalizaron correctamente en los entornos configurados. Aun así, se recomienda realizar una prueba manual en equipos físicos Windows 10/11, con unidades NTFS secundarias o extraíbles, perfiles redirigidos y carpetas con permisos restringidos.
 
-Python · Flask · psutil · HTML · CSS · JavaScript · GitHub Actions
+La aprobación de CI no sustituye esas pruebas físicas ni garantiza compatibilidad con todas las configuraciones de Windows.
+
+## Próximas mejoras
+
+- Vista de árbol y filtros avanzados de almacenamiento.
+- Detección y comparación de archivos duplicados con revisión manual.
+- Historial de análisis y reportes exportables.
+- Mejoras de accesibilidad y estados de error.
+- Pruebas adicionales en equipos Windows reales.
 
 ## Licencia
 
