@@ -14,6 +14,14 @@
 
 </div>
 
+## Vista del producto
+
+![Vista conceptual de NEXUS PC CONTROL](docs/images/nexus-pc-control-preview.svg)
+
+[Ver flujo de uso](docs/images/nexus-workflow.svg) · [Arquitectura](docs/ARCHITECTURE.md) · [Registro de cambios](CHANGELOG.md)
+
+> Las imágenes del repositorio son previews conceptuales de la interfaz, no capturas certificadas de ejecución en un equipo Windows.
+
 ## Qué es NEXUS
 
 NEXUS PC CONTROL es una aplicación de escritorio/local para Windows. Inicia un servidor en el propio equipo y muestra el panel en el navegador mediante `127.0.0.1:8765`.
