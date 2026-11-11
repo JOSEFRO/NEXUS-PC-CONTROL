@@ -95,7 +95,7 @@ La rama `feat/nexus-safe-trash` incorpora una dirección visual oscura con acent
 ## Validación y estado
 
 - CI de GitHub Actions: pruebas en Ubuntu y Windows. En la última ejecución de esta rama, Ubuntu pasó y Windows detectó una aserción de prueba demasiado estricta por diferencias entre rutas largas y alias 8.3 de Windows. La prueba se ajustó para comparar identidad del archivo; la nueva ejecución queda pendiente de resultado.
-- P0/P1: 17 pruebas automatizadas aprobadas en ambos runners para el commit de Storage Intelligence 2.0.
+- La suite actual contiene 32 pruebas automatizadas. Ubuntu aprobó las 32 en la última ejecución; la validación equivalente en Windows está en curso tras ajustar una aserción que fallaba por alias de rutas 8.3 del runner.
 - La CI usa máquinas virtuales. Aún se recomienda validar en equipos físicos Windows 10/11, unidades NTFS secundarias/removibles, perfiles redirigidos y carpetas con permisos restringidos.
 - El rediseño visual y el cambio de papelera están en una propuesta de integración; no se consideran publicados hasta completar CI y revisión en un equipo Windows real.
 - La versión 2.0 sigue en desarrollo. Las fases de árbol de carpetas, categorías, mapa visual, duplicados y reportes están en la hoja de ruta.
