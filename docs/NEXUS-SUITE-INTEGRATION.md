@@ -1,6 +1,6 @@
 # NEXUS Suite Integration — diseño y criterios de entrega
 
-**Estado:** base de trabajo iniciada en `feature/nexus-suite-integration`; endurecimiento de eliminación recuperable en `feat/nexus-safe-trash`. No declarar los módulos como disponibles hasta completar API, interfaz y validación en Windows 10/11.
+**Estado:** base de trabajo iniciada en `feature/nexus-suite-integration`; endurecimiento de eliminación recuperable en `feat/nexus-safe-trash`. La CI de la rama base ejecuta pruebas en Ubuntu y Windows para PR apiladas. No declarar los módulos como disponibles hasta completar API, interfaz y validación en Windows 10/11.
 
 ## Módulos de producto
 
