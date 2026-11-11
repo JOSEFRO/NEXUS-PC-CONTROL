@@ -8,7 +8,7 @@
   <meta name="color-scheme" content="dark">
   <title>NEXUS PC CONTROL — Centro de diagnóstico</title>
   <link rel="icon" href="/static/josefro-mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/static/style.css?v=20261111-editorial-v2">
+  <link rel="stylesheet" href="/static/style.css?v=20261111-analytics-v1">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Saltar al contenido</a>
@@ -32,6 +32,7 @@
     <section id="storage" class="panel">
       <div class="section-head"><div><p class="eyebrow">01 / STORAGE INTELLIGENCE</p><h2>¿Qué está ocupando espacio?</h2></div><button type="button" onclick="runScan()">Escanear carpetas</button></div>
       <div id="drives" class="drive-list" aria-label="Unidades detectadas"><p class="muted">Consultando unidades...</p></div>
+      <div id="storageVisual" class="storage-visual" aria-live="polite" aria-label="Visualización de capacidad por unidad"><p class="muted">Preparando visualización...</p></div>
       <div id="profileJob" class="job-panel" aria-live="polite"></div>
       <div id="folders" class="folder-list" aria-live="polite"><p class="muted">Pulsa Analizar ahora para comenzar.</p></div>
       <div class="section-head"><div><p class="eyebrow">EXPLORADOR</p><h3>Explorar todas las categorías</h3></div></div>
@@ -52,9 +53,13 @@
     <section id="health" class="panel">
       <div class="section-head"><div><p class="eyebrow">04 / SYSTEM HEALTH</p><h2>Estado del equipo</h2></div><button type="button" onclick="loadHealth()">Actualizar</button></div>
       <p id="healthInfo" class="muted" aria-live="polite">Consultando recursos...</p>
+      <div class="health-metrics" aria-label="Uso actual de recursos">
+        <article class="health-metric"><div><span>PROCESADOR</span><strong id="cpuVisualValue">—</strong></div><div class="health-track"><i id="cpuVisualBar"></i></div></article>
+        <article class="health-metric"><div><span>MEMORIA RAM</span><strong id="ramVisualValue">—</strong></div><div class="health-track"><i id="ramVisualBar"></i></div></article>
+      </div>
     </section>
     <footer><img class="josefro-footer-logo" src="/static/josefro-logo.svg" alt="JOSEFRO"><span>NEXUS PC CONTROL · v2.0 BETA · Diagnóstico local</span></footer>
   </main>
-  <script src="/static/app.js?v=20261111-open-source-suite"></script>
+  <script src="/static/app.js?v=20261111-analytics-v1"></script>
 </body>
 </html>
