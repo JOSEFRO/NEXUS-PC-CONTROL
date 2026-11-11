@@ -133,3 +133,47 @@ button:hover{border-color:#58c8ff;box-shadow:0 0 0 3px #58c8ff12}
 .explorer-controls{margin:16px 0 0}
 .storage-explorer[hidden]{display:none}
 @media(max-width:600px){.explorer-row{gap:8px;padding:10px}.storage-explorer{padding:12px}}
+
+
+/* NEXUS PC CONTROL — premium violet diagnostic console */
+:root{color-scheme:dark;--bg:#08060f;--panel:#110d1b;--panel2:#1b1428;--line:#35254b;--text:#f5f0ff;--muted:#a99abf;--cyan:#c39aff;--blue:#8b5cf6;--red:#ff718d}
+::selection{background:#a66cff;color:#fff}
+body{background:radial-gradient(ellipse at 75% 0%,#281342 0,transparent 38%),radial-gradient(ellipse at 8% 90%,#21103a 0,transparent 34%),var(--bg)}
+.sidebar{background:linear-gradient(180deg,#100b1b 0%,#090711 100%);border-color:#2d2140;box-shadow:16px 0 55px #0005}
+.brand .josefro-app-mark{filter:drop-shadow(0 0 12px #a66cff66)}
+.brand b{letter-spacing:4px}.brand small i{color:#c49bff;font-style:normal}
+nav a{border-radius:10px}
+nav a.active{color:#e7d7ff;border-color:#a66cff44;background:linear-gradient(100deg,#44207866,#1d142b);box-shadow:inset 3px 0 #b98aff,0 8px 24px #0003}
+nav a:hover{background:#251638;color:#e7d7ff}
+.side-note{border:1px solid #a66cff28;background:#a66cff0c;color:#c8a7ff;border-radius:12px}
+.local-pulse{background:#c49bff;box-shadow:0 0 13px #c49bff}
+main{max-width:1500px}
+header{padding:24px 0 30px;border-bottom:1px solid #ffffff12}
+.eyebrow{color:#c49bff}
+h1{letter-spacing:-2px;line-height:1.05}
+.stat,.panel{background:linear-gradient(145deg,#171025,#0e0a17 78%);border-color:#35254b;box-shadow:0 18px 48px #0003}
+.stat{position:relative;overflow:hidden;transition:transform .25s,border-color .25s,box-shadow .25s}
+.stat:after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 100% 0%,#9c61e91c,transparent 52%)}
+.stat:hover{transform:translateY(-3px);border-color:#9863d5;box-shadow:0 22px 55px #0005,0 0 28px #9b5de51a}
+.stat span{color:#b4a4cb}.stat strong{letter-spacing:-1.5px}
+.bar{background:#2b203b}.bar i{background:linear-gradient(90deg,#793bd0,#c39aff,#f0c9ff);box-shadow:0 0 18px #a66cff55}
+button{border-color:#49335f;background:linear-gradient(145deg,#211630,#171020);transition:transform .2s,border-color .2s,box-shadow .2s}
+button:hover{border-color:#bd8cff;box-shadow:0 0 18px #a66cff20;transform:translateY(-1px)}
+button.primary{color:#fff;background:linear-gradient(110deg,#7136c5,#a66cff);box-shadow:0 9px 28px #8b5cf633}
+button.primary:hover{box-shadow:0 12px 35px #9b5de55c}
+.panel{border-radius:18px;padding:clamp(18px,2.2vw,28px)}
+.section-head{margin-bottom:18px}
+.section-head h2{letter-spacing:-.8px}
+.folder,.checkrow{background:#0d0915;border-color:#30213f;border-radius:12px;transition:border-color .2s,background .2s}
+.folder:hover,.checkrow:hover{border-color:#8e5ac8;background:#171023}
+.size{color:#d1adff}
+.notice{color:#f0d5ff;background:#291a3b;border-color:#5c397d}
+.danger{border-color:#824055;color:#ff9bad;background:#29101d}
+input,select,textarea{accent-color:#b78aff}
+input[type=number]{border:1px solid #49335f;border-radius:9px;background:#0d0915;color:#f5f0ff;padding:9px}
+footer{display:flex;align-items:center;gap:14px;border-top:1px solid #ffffff12;margin-top:32px}
+.josefro-footer-logo{max-width:112px;max-height:32px;object-fit:contain}
+.skip-link:focus{background:#c39aff;color:#160d24}
+@media(max-width:800px){.sidebar{border-bottom:1px solid #35254b}.sidebar nav{gap:5px}.sidebar nav a{border:1px solid #ffffff0b}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.stats{grid-template-columns:1fr}.section-head{gap:12px}.scan-controls{display:flex;flex-wrap:wrap;gap:8px}}
+@media(prefers-reduced-motion:reduce){.stat,.folder,button{transition:none}.stat:hover,button:hover{transform:none}}
