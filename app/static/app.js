@@ -127,6 +127,8 @@
     const list = $("largeFiles");
     if (!list) return;
     largeFileData = Array.isArray(files) ? files.slice() : [];
+    const exportButton = $("exportLargeCsv");
+    if (exportButton) exportButton.disabled = largeFileData.length === 0;
     list.replaceChildren();
     const query = ($("largeSearch")?.value || "").trim().toLocaleLowerCase("es-DO");
     const sort = $("largeSort")?.value || "size-desc";
@@ -457,6 +459,24 @@
     }
   }
 
+  function exportLargeFilesCsv() {
+    if (!largeFileData.length) return;
+    const columns = ["Nombre", "Ruta", "Tamaño (GB)", "Tamaño (bytes)"];
+    const quote = (value) => '"' + String(value ?? "").replace(/"/g, '""') + '"';
+    const rows = largeFileData.map(item => [item.name, item.path, item.size_gb, item.size_bytes]);
+    const csv = "\uFEFF" + [columns, ...rows].map(row => row.map(quote).join(";")).join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "nexus-archivos-grandes-" + new Date().toISOString().slice(0, 10) + ".csv";
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  $("exportLargeCsv")?.addEventListener("click", exportLargeFilesCsv);
   $("largeSearch")?.addEventListener("input", refreshLargeFileResults);
   $("largeSort")?.addEventListener("change", refreshLargeFileResults);
 
