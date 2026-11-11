@@ -3,6 +3,7 @@
 
   const $ = (id) => document.getElementById(id);
   const state = { scanning: false, largeFiles: false, health: false };
+  let largeFileData = [];
   const number = (value, digits = 2) => Number(value || 0).toFixed(digits);
   const gb = (value) => number(value) + " GB";
 
@@ -105,13 +106,26 @@
   function renderLargeFiles(files, coverage) {
     const list = $("largeFiles");
     if (!list) return;
+    largeFileData = Array.isArray(files) ? files.slice() : [];
     list.replaceChildren();
-    if (!Array.isArray(files) || files.length === 0) {
-      showMessage(list, "No se encontraron archivos con ese tamaño mínimo.");
+    const query = ($("largeSearch")?.value || "").trim().toLocaleLowerCase("es-DO");
+    const sort = $("largeSort")?.value || "size-desc";
+    const visible = largeFileData.filter((item) =>
+      String(item.name || "").toLocaleLowerCase("es-DO").includes(query) ||
+      String(item.path || "").toLocaleLowerCase("es-DO").includes(query)
+    );
+    visible.sort((a, b) => sort === "name-asc"
+      ? String(a.name || "").localeCompare(String(b.name || ""), "es")
+      : Number(b.size_gb || 0) - Number(a.size_gb || 0));
+    const summary = make("p", "muted large-results-summary",
+      "Mostrando " + visible.length.toLocaleString("es-DO") + " de " + largeFileData.length.toLocaleString("es-DO") + " archivos encontrados.");
+    list.append(summary);
+    if (visible.length === 0) {
+      showMessage(list, query ? "No hay archivos que coincidan con esa búsqueda." : "No se encontraron archivos con ese tamaño mínimo.");
       appendCoverage(list, coverage);
       return;
     }
-    files.forEach((item) => {
+    visible.forEach((item) => {
       const row = make("article", "folder");
       const details = make("div");
       details.append(make("b", "", item.name), make("small", "", item.path));
@@ -119,6 +133,10 @@
       list.append(row);
     });
     appendCoverage(list, coverage);
+  }
+
+  function refreshLargeFileResults() {
+    if (largeFileData.length) renderLargeFiles(largeFileData);
   }
 
   function renderCleanup(items) {
@@ -412,6 +430,9 @@
       window.alert("No se pudo completar la eliminación: " + error.message);
     }
   }
+
+  $("largeSearch")?.addEventListener("input", refreshLargeFileResults);
+  $("largeSort")?.addEventListener("change", refreshLargeFileResults);
 
   window.runScan = runScan;
   window.loadLarge = loadLarge;
