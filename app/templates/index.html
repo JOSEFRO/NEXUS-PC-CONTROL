@@ -10,6 +10,7 @@
   <link rel="icon" href="/static/josefro-mark.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/style.css?v=20261111-analytics-v1">
   <link rel="stylesheet" href="{{ url_for('static', filename='cinematic.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='experience-motion.css') }}">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Saltar al contenido</a>
@@ -64,5 +65,6 @@
     <footer><img class="josefro-footer-logo" src="/static/josefro-logo.svg" alt="JOSEFRO"><span>NEXUS PC CONTROL · v2.0 BETA · Diagnóstico local</span></footer>
   </main>
   <script src="/static/app.js?v=20261111-analytics-v1"></script>
+  <script src="{{ url_for('static', filename='experience-motion.js') }}" defer></script>
 </body>
 </html>
