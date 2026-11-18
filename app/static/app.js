@@ -162,6 +162,8 @@
     visual.replaceChildren();
     const candidates = (Array.isArray(files) ? files : [])
       .filter((item) => Number(item.size_gb) > 0)
+      .slice()
+      .sort((a, b) => Number(b.size_gb || 0) - Number(a.size_gb || 0))
       .slice(0, 24);
     if (!candidates.length) {
       showMessage(visual, "La vista comparativa aparecerá cuando encuentres archivos grandes.");
