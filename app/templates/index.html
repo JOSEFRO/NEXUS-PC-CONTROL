@@ -44,6 +44,8 @@
       <div class="section-head"><div><p class="eyebrow">02 / LARGE FILES</p><h2>Archivos de gran tamaño</h2></div><div class="scan-controls"><label for="largeThreshold">Tamaño mínimo (MB)</label><input id="largeThreshold" type="number" min="1" max="1048576" value="1024"><button type="button" onclick="loadLarge()">Buscar archivos</button><label class="visually-hidden" for="largeSearch">Filtrar resultados</label><input id="largeSearch" type="search" placeholder="Filtrar por nombre o ruta" aria-label="Filtrar archivos por nombre o ruta"><label class="visually-hidden" for="largeSort">Ordenar resultados</label><select id="largeSort" aria-label="Ordenar archivos"><option value="size-desc">Mayor tamaño primero</option><option value="name-asc">Nombre A–Z</option></select></div></div>
       <p class="notice">La búsqueda solo informa; no elimina archivos.</p>
       <div id="largeJob" class="job-panel" aria-live="polite"></div>
+      <div class="treemap-heading"><h3>Mapa comparativo de archivos</h3><span>VISTA VISUAL · SOLO LECTURA</span></div>
+      <div id="largeTreemap" class="large-treemap" aria-live="polite" aria-label="Mapa comparativo de los archivos más grandes"><p class="muted">Escaneo bajo demanda.</p></div>
       <div id="largeFiles" class="folder-list" aria-live="polite"><p class="muted">Escaneo bajo demanda.</p></div>
     </section>
     <section id="cleaner" class="panel">
