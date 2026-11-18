@@ -137,6 +137,7 @@
     visible.sort((a, b) => sort === "name-asc"
       ? String(a.name || "").localeCompare(String(b.name || ""), "es")
       : Number(b.size_gb || 0) - Number(a.size_gb || 0));
+    renderLargeTreemap(visible);
     const summary = make("p", "muted large-results-summary",
       "Mostrando " + visible.length.toLocaleString("es-DO") + " de " + largeFileData.length.toLocaleString("es-DO") + " archivos encontrados.");
     list.append(summary);
@@ -153,6 +154,38 @@
       list.append(row);
     });
     appendCoverage(list, coverage);
+  }
+
+  function renderLargeTreemap(files) {
+    const visual = $("largeTreemap");
+    if (!visual) return;
+    visual.replaceChildren();
+    const candidates = (Array.isArray(files) ? files : [])
+      .filter((item) => Number(item.size_gb) > 0)
+      .slice(0, 24);
+    if (!candidates.length) {
+      showMessage(visual, "La vista comparativa aparecerá cuando encuentres archivos grandes.");
+      return;
+    }
+    const largest = Math.max(...candidates.map((item) => Number(item.size_gb) || 0));
+    candidates.forEach((item) => {
+      const ratio = (Number(item.size_gb) || 0) / largest;
+      const columns = ratio >= 0.65 ? 3 : ratio >= 0.25 ? 2 : 1;
+      const rows = ratio >= 0.65 ? 2 : ratio >= 0.15 ? 2 : 1;
+      const tile = make("article", "treemap-tile");
+      tile.style.gridColumn = "span " + columns;
+      tile.style.gridRow = "span " + rows;
+      tile.title = String(item.path || item.name || "");
+      tile.setAttribute("aria-label", String(item.name || "Archivo") + ", " + gb(item.size_gb));
+      tile.append(
+        make("b", "treemap-name", item.name || "Archivo sin nombre"),
+        make("strong", "treemap-size", gb(item.size_gb)),
+        make("small", "treemap-path", item.path || "")
+      );
+      visual.append(tile);
+    });
+    const note = make("p", "treemap-note", "Comparación visual de los 24 archivos más grandes del filtro actual. El tamaño de cada bloque es orientativo; revisa la ruta antes de tomar cualquier decisión.");
+    visual.append(note);
   }
 
   function refreshLargeFileResults() {
