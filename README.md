@@ -1,124 +1,112 @@
 <div align="center">
 
-<img src="https://d8j0ntlcm91z4.cloudfront.net/user_3MJ8xX039ib9919oo3CFVd7NjMx/hf_20261119_141629_110d8230-27cb-4b12-8c1e-1af9776c6eb4.webp" alt="Ilustración conceptual del panel de diagnóstico NEXUS PC CONTROL" width="100%">
-
-<img src="docs/images/nexus-identity.svg" alt="Identidad visual NEXUS PC CONTROL" width="100%">
-
+<img src="https://d8j0ntlcm91z4.cloudfront.net/user_3MJ8xX039ib9919oo3CFVd7NjMx/hf_20261119_141629_110d8230-27cb-4b12-8c1e-1af9776c6eb4.webp" alt="Arte conceptual de NEXUS PC CONTROL" width="100%">
 
 # NEXUS PC CONTROL
 
-### Comprende tu equipo. Analiza el almacenamiento. Actúa con control.
+**Aplicación local para diagnóstico de Windows y análisis de almacenamiento.**
 
-**Herramienta local para Windows que reúne diagnóstico del sistema y análisis de almacenamiento en una interfaz visual.**
+[Repositorio](https://github.com/JOSEFRO/NEXUS-PC-CONTROL) · [Incidencias](https://github.com/JOSEFRO/NEXUS-PC-CONTROL/issues) · [Historial](https://github.com/JOSEFRO/NEXUS-PC-CONTROL/commits/main)
 
-[📂 Repositorio](https://github.com/JOSEFRO/NEXUS-PC-CONTROL) · [⬇ Descargar ZIP](https://github.com/JOSEFRO/NEXUS-PC-CONTROL/archive/refs/heads/main.zip) · [🧾 Cambios recientes](https://github.com/JOSEFRO/NEXUS-PC-CONTROL/commits/main)
-
-<sub>Proyecto de JOSEFRO · Python / Flask</sub>
+![Estado](https://img.shields.io/badge/estado-desarrollo%20activo-blue)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python)
+![Flask](https://img.shields.io/badge/Flask-3.1-000000?logo=flask)
+![Plataforma](https://img.shields.io/badge/plataforma-Windows-0078D6?logo=windows)
 
 </div>
 
-## Vista del producto
+## 1. Descripción
 
-![Vista conceptual de NEXUS PC CONTROL](docs/images/nexus-pc-control-preview.svg)
+NEXUS PC CONTROL es una aplicación local para Windows que presenta información del equipo y permite analizar el almacenamiento desde una interfaz web servida por el propio dispositivo.
 
-[Ver flujo de uso](docs/images/nexus-workflow.svg) · [Arquitectura](docs/ARCHITECTURE.md) · [Registro de cambios](CHANGELOG.md)
+No es un servicio web público ni una herramienta de administración remota. La interfaz se abre en el navegador, mientras que el proceso de análisis se ejecuta localmente.
 
-> Las imágenes del repositorio son previews conceptuales de la interfaz, no capturas certificadas de ejecución en un equipo Windows.
+## 2. Capacidades
 
-## Qué es NEXUS
+- Consulta de unidades, capacidad total, espacio utilizado y disponible.
+- Indicadores de CPU y memoria RAM.
+- Análisis de carpetas admitidas del perfil de usuario.
+- Identificación de archivos grandes y ordenamiento de resultados.
+- Ejecución en segundo plano y cancelación cooperativa.
+- Reporte de cobertura, exclusiones y errores.
+- Selección explícita de archivos para enviarlos a la papelera del sistema.
 
-NEXUS PC CONTROL es una aplicación de escritorio/local para Windows. Inicia un servidor en el propio equipo y muestra el panel en el navegador mediante `127.0.0.1:8765`.
+El escaneo es de solo lectura. Las acciones de limpieza son independientes, requieren selección y confirmación y no equivalen a vaciar la papelera.
 
-**No es un servicio web público ni una herramienta para administrar computadoras por Internet.** Los datos del equipo se consultan localmente.
+## 3. Arquitectura y tecnologías
 
-## Funciones principales
+- Python 3.10 o superior.
+- Flask 3.1 para el servidor local.
+- psutil para métricas del sistema.
+- Send2Trash para integración con la papelera.
+- HTML, CSS y JavaScript para la interfaz.
 
-### Diagnóstico del sistema
-- Consulta de unidades detectadas y capacidad utilizada/disponible.
-- Indicadores visuales de capacidad por unidad.
-- Lecturas de CPU y memoria RAM.
-- Medidores gráficos para facilitar la interpretación de los recursos.
-- Información del entorno de ejecución.
+### Interfaz local y protocolos
 
-### Análisis de almacenamiento
-- Escaneo de carpetas admitidas del perfil de usuario.
-- Búsqueda de archivos grandes con umbral configurable.
-- Ejecución de análisis en segundo plano.
-- Contadores de archivos, carpetas y bytes observados.
-- Cancelación cooperativa y resultados parciales cuando corresponde.
-- Reporte de cobertura, errores, exclusiones y enlaces simbólicos omitidos.
-- Resultados ordenados por tamaño.
+- HTTP sobre loopback para comunicación entre el navegador y el proceso local.
+- Dirección prevista: `127.0.0.1:8765`.
+- API JSON para iniciar y consultar trabajos de análisis.
+- No exponer el servidor local a interfaces públicas ni a redes externas.
 
-### Explorador y acciones cuidadosas
-- Presenta resultados para que el usuario los revise antes de actuar.
-- Los archivos seleccionados en las ubicaciones admitidas se envían a la papelera del sistema mediante Send2Trash.
-- La interfaz distingue entre enviar a la papelera y liberar espacio: el espacio no se considera recuperado hasta vaciar la papelera.
-- La operación vuelve a validar la ruta y el tipo de archivo antes de enviarlo a la papelera.
+## 4. Requisitos
 
-Las acciones de limpieza disponibles requieren selección y confirmación. El análisis no borra archivos.
+- Windows 10/11.
+- Python 3.10 o superior.
+- PowerShell o terminal de Windows.
+- Dependencias indicadas en `requirements.txt`.
 
-## Inicio rápido en Windows
+## 5. Inicio rápido
 
-**Requisitos:** Windows 10/11, Python 3.10 o superior y conexión inicial para instalar dependencias.
+Descarga el ZIP desde [GitHub](https://github.com/JOSEFRO/NEXUS-PC-CONTROL/archive/refs/heads/main.zip), extrae los archivos y ejecuta `INICIAR.bat`.
 
-1. Descarga el ZIP del repositorio y extrae su contenido.
-2. Ejecuta `INICIAR.bat`.
-3. Espera a que se instalen las dependencias y arranque el servidor.
-4. Abre [http://127.0.0.1:8765](http://127.0.0.1:8765) si el navegador no se abre automáticamente.
-
-También puedes iniciarlo desde PowerShell:
+Inicio manual:
 
 ```powershell
 py -m venv .venv
-.venv\Scripts\activate
+.\.venv\Scripts\Activate.ps1
 py -m pip install -r requirements.txt
 py app.py
 ```
 
-## API local de análisis
+Abre [http://127.0.0.1:8765](http://127.0.0.1:8765).
 
-| Método | Ruta | Función |
+## 6. API local
+
+| Método | Ruta | Descripción |
 |---|---|---|
 | POST | `/api/storage/scans` | Inicia un análisis admitido. |
-| GET | `/api/storage/scans/{scan_id}` | Consulta el estado, contadores y resultados. |
-| POST | `/api/storage/scans/{scan_id}/cancel` | Solicita cancelar el análisis. |
+| GET | `/api/storage/scans/{scan_id}` | Consulta el estado y los resultados. |
+| POST | `/api/storage/scans/{scan_id}/cancel` | Solicita cancelar un análisis. |
 
-Los estados del trabajo distinguen entre cola, ejecución, cancelación, finalización, finalización con advertencias y error. Cuando no se conoce el total de elementos, el progreso se presenta como indeterminado en vez de inventar un porcentaje.
+Los estados deben distinguir cola, ejecución, cancelación, finalización, finalización con advertencias y error. Si no se conoce el total de elementos, el progreso debe mostrarse como indeterminado.
 
-Consulta la [especificación de Storage Intelligence](docs/STORAGE-INTELLIGENCE-2.0.md).
+## 7. Seguridad y privacidad
 
-## Privacidad y seguridad
+- Mantén el servidor enlazado exclusivamente a `127.0.0.1`.
+- No uses túneles ni reenvío de puertos para publicar el panel.
+- Valida cada ruta en el servidor antes de cualquier acción sobre archivos.
+- Evita seguir enlaces simbólicos durante el recorrido.
+- Mantén el escaneo separado de las acciones de limpieza.
+- Exige confirmación explícita para operaciones que modifican archivos.
+- No transmitas inventarios de archivos a servicios externos.
+- Informa claramente de errores y carpetas excluidas.
 
-- El servidor local debe permanecer ligado a `127.0.0.1`.
-- No publiques el servidor en una IP pública, túnel o alojamiento web.
-- El escaneo de almacenamiento es de solo lectura.
-- No se siguen enlaces simbólicos durante el recorrido.
-- Se muestran exclusiones y errores para no confundir cobertura parcial con análisis completo.
-- La aplicación no necesita enviar inventarios de archivos a servicios externos.
-- Las acciones de limpieza están separadas del escaneo y requieren confirmación.
+Los tamaños mostrados son tamaños lógicos y no necesariamente equivalen al espacio físico asignado en el sistema de archivos.
 
-Los tamaños mostrados representan tamaño lógico y no necesariamente espacio físico asignado en NTFS. El análisis del perfil tampoco equivale a un inventario completo del disco.
+## 8. Pruebas recomendadas
 
-## Tecnología
+- Windows 10 y Windows 11.
+- Perfiles con permisos restringidos.
+- Unidades secundarias y extraíbles.
+- Rutas largas, nombres Unicode y enlaces simbólicos.
+- Cancelación durante el análisis.
+- Errores de acceso y archivos bloqueados.
+- Validación de rutas y confirmaciones antes de enviar a la papelera.
 
-Python · Flask · psutil · Send2Trash · HTML · CSS · JavaScript · GitHub Actions
+## 9. Estado del proyecto
 
-## Estado y validación
+NEXUS está en desarrollo activo. Las pruebas automatizadas deben complementarse con validación manual en equipos Windows reales antes de publicar una versión estable.
 
-NEXUS se encuentra en desarrollo activo. La integración actual incluye mejoras de seguridad al enviar archivos a la papelera y visualizaciones de almacenamiento, CPU y RAM.
+## 10. Licencia
 
-Las comprobaciones automatizadas recientes de GitHub Actions finalizaron correctamente en los entornos configurados. Aun así, se recomienda realizar una prueba manual en equipos físicos Windows 10/11, con unidades NTFS secundarias o extraíbles, perfiles redirigidos y carpetas con permisos restringidos.
-
-La aprobación de CI no sustituye esas pruebas físicas ni garantiza compatibilidad con todas las configuraciones de Windows.
-
-## Próximas mejoras
-
-- Vista de árbol y filtros avanzados de almacenamiento.
-- Detección y comparación de archivos duplicados con revisión manual.
-- Historial de análisis y reportes exportables.
-- Mejoras de accesibilidad y estados de error.
-- Pruebas adicionales en equipos Windows reales.
-
-## Licencia
-
-No se ha añadido una licencia de reutilización. El código y los recursos permanecen reservados a su propietario salvo autorización expresa.
+No se ha incorporado una licencia de reutilización. El código y los recursos permanecen reservados a su titular salvo autorización expresa.
