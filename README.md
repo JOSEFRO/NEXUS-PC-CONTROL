@@ -4,7 +4,6 @@
 
 <img src="docs/images/nexus-identity.svg" alt="Identidad visual NEXUS PC CONTROL" width="100%">
 
-<img src="docs/images/nexus-identity.svg" alt="Identidad visual NEXUS PC CONTROL" width="100%">
 
 # NEXUS PC CONTROL
 
