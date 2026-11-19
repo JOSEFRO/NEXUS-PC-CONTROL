@@ -1,5 +1,9 @@
 <div align="center">
 
+<img src="https://d8j0ntlcm91z4.cloudfront.net/user_3MJ8xX039ib9919oo3CFVd7NjMx/hf_20261119_141629_110d8230-27cb-4b12-8c1e-1af9776c6eb4.webp" alt="Ilustración conceptual del panel de diagnóstico NEXUS PC CONTROL" width="100%">
+
+<img src="docs/images/nexus-identity.svg" alt="Identidad visual NEXUS PC CONTROL" width="100%">
+
 <img src="docs/images/nexus-identity.svg" alt="Identidad visual NEXUS PC CONTROL" width="100%">
 
 # NEXUS PC CONTROL
